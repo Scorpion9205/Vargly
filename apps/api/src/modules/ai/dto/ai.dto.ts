@@ -8,6 +8,8 @@ export interface GenerateAiCompletionDto {
   readonly model?: string;
   readonly temperature?: number;
   readonly maxTokens?: number;
+  /** The reply must be one JSON object (the prompt has to ask for it) */
+  readonly jsonMode?: boolean;
 }
 
 export interface GenerateStudentNarrativeDto {

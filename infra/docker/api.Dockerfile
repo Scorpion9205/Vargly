@@ -50,6 +50,8 @@ COPY --chown=node:node --from=builder /app/node_modules ./node_modules
 COPY --chown=node:node --from=builder /app/packages ./packages
 COPY --chown=node:node --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 COPY --chown=node:node --from=builder /app/apps/api/dist ./apps/api/dist
+# Fonts for the PDFs the API renders (question papers, including Hindi)
+COPY --chown=node:node --from=builder /app/apps/api/assets ./apps/api/assets
 COPY --chown=node:node --from=builder /app/apps/api/package.json ./apps/api/package.json
 # Schema and migrations, for the migrate command
 COPY --chown=node:node --from=builder /app/apps/api/src/database/prisma/schema.prisma ./apps/api/dist/database/prisma/schema.prisma

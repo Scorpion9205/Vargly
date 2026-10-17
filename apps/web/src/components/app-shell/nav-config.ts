@@ -15,6 +15,7 @@ import {
   Wallet,
   Banknote,
   ShieldCheck,
+  Sparkles,
 } from 'lucide-react';
 
 export type NavKey =
@@ -32,7 +33,8 @@ export type NavKey =
   | 'reports'
   | 'settings'
   | 'billing'
-  | 'admin';
+  | 'admin'
+  | 'papers';
 
 export interface NavItem {
   key: NavKey;
@@ -68,6 +70,7 @@ export const NAV_GROUPS: NavGroup[] = [
       },
       { key: 'tests', href: '/app/tests', icon: ClipboardCheck, permission: 'tests:read' },
       { key: 'homework', href: '/app/homework', icon: BookOpen, permission: 'homework:read' },
+      { key: 'papers', href: '/app/papers', icon: Sparkles, permission: 'papers:manage' },
     ],
   },
   {

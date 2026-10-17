@@ -14,6 +14,8 @@ Status legend: ✅ fixed · 🚧 in progress · ⬜ not started
 
 > **Follow-ups closed (2026-10-17):** (1) tests no longer pick up real provider keys from `apps/api/.env` (Prisma loads that file into `process.env`): `vitest.config.ts` blanks them first and `test-isolation.spec.ts` guards it; (2) `GET /batches` now lists only a teacher's own batches (students and parents already did), and marks can only be uploaded for students enrolled in the test's batch (`STUDENT_NOT_IN_BATCH`); (3) a password change or reset ends the user's earlier access tokens at once (`users.tokens_valid_after`, checked against the token's millisecond `issuedAtMs` claim) instead of leaving them valid for up to 15 minutes. These remove the matching items from the Phase 2 "known limitations".
 
+> **Paper studio (2026-10-18):** AI-generated or uploaded question papers shared with a batch by link (see [RUNBOOK.md](RUNBOOK.md) §7). Found on the way: `batch:<id>:students` messaged only the students' own numbers, so homework alerts reached nobody when students had no phone; homework alerts now use `batch:<id>:contacts` (all linked parents plus the student, each phone once).
+
 ---
 
 ## 1. Findings

@@ -39,6 +39,7 @@ export function createApp(): Express {
   // Registered first, these parse the body so the default parser below skips it.
   app.use('/api/v1/storage/upload', jsonParser('15mb')); // base64 of a 10 MB file
   app.use('/api/v1/import', jsonParser('10mb'));
+  app.use('/api/v1/papers/upload', jsonParser('15mb')); // a teacher's PDF, base64
   app.use(jsonParser('1mb'));
   app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
@@ -125,6 +126,7 @@ export function createApp(): Express {
   app.use('/api/v1/dashboard', m.dashboard.router);
   app.use('/api/v1/import', m.import.router);
   app.use('/api/v1/admin/ops', m.ops.router);
+  app.use('/api/v1/papers', m.papers.router);
 
   // Global Error Handler (must be last)
   app.use(errorHandlerMiddleware);

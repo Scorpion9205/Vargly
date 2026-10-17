@@ -55,6 +55,7 @@ const ALL_PERMISSIONS = [
   { code: 'dashboard:teacher', module: 'dashboard', action: 'teacher', description: 'View teacher dashboard' },
   { code: 'audit:read', module: 'audit', action: 'read', description: 'View audit trail' },
   { code: 'ai:manage_credits', module: 'ai', action: 'manage_credits', description: 'Top up AI credit wallet' },
+  { code: 'papers:manage', module: 'papers', action: 'manage', description: 'Generate, upload and share question papers' },
   { code: 'ai:view_logs', module: 'ai', action: 'view_logs', description: 'View AI usage ledger' },
 ];
 
@@ -71,6 +72,7 @@ const TEACHER_PERMISSION_CODES = [
   'homework:update',
   'homework:delete',
   'ai:generate',
+  'papers:manage',
   'notices:read',
   'dashboard:teacher',
 ];
@@ -168,12 +170,15 @@ async function main() {
     'ai.parent_report',
     'ai.insights',
     'ai.risk_engine',
+    'ai.papers',
     'whatsapp.assistant',
   ];
 
   await prisma.plan.upsert({
     where: { code: PlanCode.ENTERPRISE },
-    update: {},
+    // Features are kept in sync on every seed so a new feature reaches existing plans; prices
+    // and credits are left alone because they may have been changed by hand
+    update: { defaultFeatures: fullFeatures },
     create: {
       code: PlanCode.ENTERPRISE,
       name: 'Enterprise Pro AI Bundle',
@@ -187,7 +192,7 @@ async function main() {
 
   await prisma.plan.upsert({
     where: { code: PlanCode.PRO_AI },
-    update: {},
+    update: { defaultFeatures: fullFeatures.filter((f) => f !== 'salary') },
     create: {
       code: PlanCode.PRO_AI,
       name: 'Pro AI Suite',
@@ -201,7 +206,7 @@ async function main() {
 
   await prisma.plan.upsert({
     where: { code: PlanCode.STARTER },
-    update: {},
+    update: { defaultFeatures: ['core', 'attendance', 'fees', 'reports'] },
     create: {
       code: PlanCode.STARTER,
       name: 'Starter Plan',

@@ -5,6 +5,28 @@ import {
   IAiProvider,
 } from './ai-provider.interface.js';
 
+/**
+ * Sample questions for the sections a paper prompt asks for ("- 5 MCQ"), so the paper studio
+ * can be tried without an API key. They say so, and are not meant for real students.
+ */
+function mockQuestionsJson(prompt: string): string {
+  const questions: Array<Record<string, unknown>> = [];
+  for (const match of prompt.matchAll(/^- (\d+) ([A-Z_]+)/gm)) {
+    const type = match[2];
+    for (let i = 1; i <= Number(match[1]); i++) {
+      const text = `Sample ${type} question ${i} (set GROQ_API_KEY for real questions)`;
+      if (type === 'MCQ') {
+        questions.push({ type, question: text, options: ['Option A', 'Option B', 'Option C', 'Option D'], answer: 'A', explanation: 'Sample explanation.' });
+      } else if (type === 'TRUE_FALSE') {
+        questions.push({ type, question: text, answer: 'True' });
+      } else {
+        questions.push({ type, question: type === 'FILL_BLANK' ? `${text}: the answer is ___.` : text, answer: 'Sample answer.' });
+      }
+    }
+  }
+  return JSON.stringify({ questions });
+}
+
 export class MockAiProvider implements IAiProvider {
   public readonly providerType: AiProviderType = AiProviderType.OPENAI;
   private readonly defaultModel = 'mock-gpt-4o';
@@ -15,7 +37,9 @@ export class MockAiProvider implements IAiProvider {
     const promptLower = options.prompt.toLowerCase();
     let content: string;
 
-    if (
+    if (options.jsonMode && /^- \d+ [A-Z_]+/m.test(options.prompt)) {
+      content = mockQuestionsJson(options.prompt);
+    } else if (
       promptLower.includes('academic progress') ||
       promptLower.includes('student narrative') ||
       promptLower.includes('monthly progress')

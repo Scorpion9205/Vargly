@@ -10,7 +10,8 @@ export interface IntegrationStatus {
 
 export function getIntegrationStatus(): IntegrationStatus[] {
   const has = (key: Parameters<typeof envConfig.get>[0]) => Boolean(envConfig.get(key));
-  const aiKeys = has('OPENAI_API_KEY') || has('ANTHROPIC_API_KEY') || has('GEMINI_API_KEY');
+  const aiKeys =
+    has('OPENAI_API_KEY') || has('ANTHROPIC_API_KEY') || has('GEMINI_API_KEY') || has('GROQ_API_KEY');
 
   return [
     {

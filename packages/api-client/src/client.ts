@@ -45,6 +45,8 @@ export interface ApiClient {
   getPage<T>(path: string, options?: Omit<RequestOptions, 'body'>): Promise<Page<T>>;
   get<T>(path: string, options?: Omit<RequestOptions, 'body'>): Promise<T>;
   post<T>(path: string, body?: unknown, options?: Omit<RequestOptions, 'body'>): Promise<T>;
+  /** POST that keeps the whole `{ data, meta }` body, for replies whose `meta` matters */
+  postEnvelope<T>(path: string, body?: unknown, options?: Omit<RequestOptions, 'body'>): Promise<T>;
   put<T>(path: string, body?: unknown, options?: Omit<RequestOptions, 'body'>): Promise<T>;
   patch<T>(path: string, body?: unknown, options?: Omit<RequestOptions, 'body'>): Promise<T>;
   delete<T>(path: string, options?: Omit<RequestOptions, 'body'>): Promise<T>;
@@ -184,6 +186,7 @@ export function createApiClient(options: ApiClientOptions): ApiClient {
     getPage,
     get: (path, opts) => request('GET', path, opts),
     post: (path, body, opts) => request('POST', path, { ...opts, body }),
+    postEnvelope: (path, body, opts) => request('POST', path, { ...opts, body }, true),
     put: (path, body, opts) => request('PUT', path, { ...opts, body }),
     patch: (path, body, opts) => request('PATCH', path, { ...opts, body }),
     delete: (path, opts) => request('DELETE', path, opts),

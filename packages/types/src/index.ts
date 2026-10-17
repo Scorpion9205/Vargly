@@ -77,6 +77,7 @@ export enum AiProviderType {
   OPENAI = 'OPENAI',
   CLAUDE = 'CLAUDE',
   GEMINI = 'GEMINI',
+  GROQ = 'GROQ',
 }
 
 // ==========================================

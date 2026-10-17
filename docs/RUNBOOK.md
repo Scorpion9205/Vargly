@@ -86,6 +86,25 @@ Webhook retries and duplicate deliveries are safe: each gateway payment is recor
 - **Scale workers:** increase `vargly-worker` replicas. Jobs, notification sends and the event relay are safe on several replicas.
 - **Upgrade a database created with `prisma db push`** (before migrations existed): `prisma migrate resolve --applied 20260923000000_init`, then deploy migrations as usual.
 
-## 7. Known gaps
+## 7. Paper studio (AI question papers)
+
+Teachers generate a question paper with AI at `/app/papers`, keep the questions they want, and share it with a batch: parents (every linked parent) and students get a WhatsApp message with a download link. A teacher can also upload their own PDF and share that.
+
+**AI provider.** Set `GROQ_API_KEY` (free Llama models at console.groq.com, no card); when it is set it is used ahead of Gemini, OpenAI and Claude. The model is `AI_MODEL_GROQ` (default `llama-3.3-70b-versatile`). Without any key, development answers with clearly marked sample questions so the screens can be tried; production refuses instead. Groq's free limits (roughly 30 requests a minute and about 1,000 a day, a daily token cap that varies by model) are **shared by every institute using the key**: check your account's limits page, and move to a paid model through the same two settings when it stops being enough.
+
+**Cost to the institute.** A paper costs 5 AI credits, one question or a small top-up 1. If the model's reply cannot be read twice in a row nothing is charged. Generating needs the plan feature `ai.papers` (the free trial and Pro plans have it; run `db:seed:rbac` after upgrading to add it to existing plans). Sharing a paper of your own needs no AI feature. The permission is `papers:manage` (owners and teachers).
+
+**Links.** Parents open `API_BASE_URL/api/v1/papers/dl/<token>` with no login: the token is 192 random bits, the endpoint is rate limited (60 a minute per address), a paper is rendered on request for the students (never with answers), and the browser is told to download it. Each open is counted for the teacher. Deleting a paper stops its links. The answer key exists only for the teacher (`/papers/:id/pdf?answers=true`). Once a paper is shared it cannot be edited (the link would change under parents); the teacher makes a copy.
+
+**WhatsApp templates to submit in WhatsApp Manager** (category Utility, English, footer "Reply STOP to stop these messages"; the exact text is in `whatsapp-templates.ts`):
+- `homework_with_file`: used when a homework has a file or paper attached (it replaces `homework_assigned` for those).
+- `paper_shared`: a practice or test paper shared without a homework entry.
+Both carry the link as a variable inside the sentence, so no document header is needed. Until they are approved, messages to anyone outside the 24-hour reply window fail. Meta's test number reaches only 5 verified recipients.
+
+**Recipients.** `batch:<id>:contacts` reaches every linked parent and the student's own number, each phone once (the older `:students` token reached only the students' own numbers, which are often empty). The daily per-institute limit (`WHATSAPP_DAILY_LIMIT_PER_COACHING`) applies as for every automatic message.
+
+**PDFs and Hindi.** PDFs are drawn with Noto Sans and Noto Sans Devanagari from `apps/api/assets/fonts` (SIL Open Font License, licences alongside); the Docker image copies that folder. If the fonts are missing, Hindi text will not render and a warning is logged at the first PDF.
+
+## 8. Known gaps
 
 Tracked in [AUDIT_AND_REMEDIATION_PLAN.md](AUDIT_AND_REMEDIATION_PLAN.md). Notably: database backups and point-in-time recovery are outside this repository, and there is no refund automation: refunds are made in the Razorpay dashboard.

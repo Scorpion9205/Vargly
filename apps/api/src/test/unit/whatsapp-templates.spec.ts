@@ -17,6 +17,13 @@ describe('WhatsApp templates', () => {
     }
   });
 
+  it('never starts or ends with a variable, which Meta rejects', () => {
+    for (const [name, template] of Object.entries(WHATSAPP_TEMPLATES)) {
+      expect(template.body, name).not.toMatch(/^\{\{\d+\}\}/);
+      expect(template.body, name).not.toMatch(/\{\{\d+\}\}\s*$/);
+    }
+  });
+
   it('puts parameters in template order, whatever order they were given in', () => {
     expect(
       templateParameters('fee_payment_confirmation', {
@@ -38,7 +45,7 @@ describe('WhatsApp templates', () => {
   it('renders the text a parent reads', () => {
     expect(
       renderTemplate('institute_notice', { institute: 'Sharma Classes', title: 'Holiday', details: 'Closed\nMonday' }),
-    ).toBe('Notice from Sharma Classes: Holiday. Details: Closed Monday');
+    ).toBe('Notice from Sharma Classes: Holiday. Details: Closed Monday Thank you.');
   });
 
   it('describes the plan and money plainly', () => {

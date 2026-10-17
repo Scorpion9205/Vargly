@@ -128,3 +128,58 @@ describe('RecipientResolverService Unit Tests', () => {
     });
   });
 });
+
+describe('batch contacts (every parent and the student, each phone once)', () => {
+  const parent = (id: string, phone: string | null, extra: Record<string, unknown> = {}) => ({
+    parent: { id, name: `Parent ${id}`, phone, email: null, deletedAt: null, ...extra },
+  });
+  const resolve = async (students: unknown[]) =>
+    new RecipientResolverService({ student: { findMany: async () => students } } as any).resolveRecipients(
+      'batch:b1:contacts',
+      'c1',
+    );
+
+  it('reaches both parents of a child, and the child, when their numbers differ', async () => {
+    const result = await resolve([
+      {
+        id: 's1', firstName: 'Aarav', lastName: 'Sharma', phone: '+919876500003',
+        studentParents: [parent('mother', '+919876500001'), parent('father', '+919876500002')],
+      },
+    ]);
+    expect(result.map((r) => [r.recipientType, r.phone])).toEqual([
+      ['PARENT', '+919876500001'],
+      ['PARENT', '+919876500002'],
+      ['STUDENT', '+919876500003'],
+    ]);
+  });
+
+  it('sends one message per phone when a parent and the student share a number, however it is written', async () => {
+    const result = await resolve([
+      {
+        id: 's1', firstName: 'Aarav', lastName: 'Sharma', phone: '98765 00001',
+        studentParents: [parent('mother', '+91 98765-00001')],
+      },
+    ]);
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({ recipientType: 'PARENT', recipientId: 'mother' });
+  });
+
+  it('writes one message naming both children when a parent has two in the batch', async () => {
+    const result = await resolve([
+      { id: 's1', firstName: 'Aarav', lastName: 'Sharma', phone: null, studentParents: [parent('mother', '+919876500001')] },
+      { id: 's2', firstName: 'Diya', lastName: 'Sharma', phone: null, studentParents: [parent('mother', '+919876500001')] },
+    ]);
+    expect(result).toHaveLength(1);
+    expect(result[0].studentName).toBe('Aarav Sharma and Diya Sharma');
+  });
+
+  it('skips deleted parents and numbers that are missing or too short', async () => {
+    const result = await resolve([
+      {
+        id: 's1', firstName: 'Aarav', lastName: 'Sharma', phone: '12345',
+        studentParents: [parent('gone', '+919876500001', { deletedAt: new Date() }), parent('nophone', null)],
+      },
+    ]);
+    expect(result).toEqual([]);
+  });
+});
