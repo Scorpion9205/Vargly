@@ -102,6 +102,15 @@ describe.skipIf(!enabled)('Authorization end-to-end (HTTP + PostgreSQL)', () => 
     const homework = (batchId: string) => ({ batchId, title: 'HW', description: 'Do it', dueDate: '2026-12-01' });
     ids.taughtHomework = await created(await owner.post('/api/v1/homework', homework(ids.taughtBatch)));
     ids.otherHomework = await created(await owner.post('/api/v1/homework', homework(ids.otherBatch)));
+    ids.taughtTest = await created(
+      await owner.post('/api/v1/tests', {
+        batchId: ids.taughtBatch,
+        title: 'Taught test',
+        subject: 'Maths',
+        testDate: '2026-11-02',
+        totalMarks: 100,
+      }),
+    );
     ids.otherTest = await created(
       await owner.post('/api/v1/tests', {
         batchId: ids.otherBatch,
@@ -158,6 +167,43 @@ describe.skipIf(!enabled)('Authorization end-to-end (HTTP + PostgreSQL)', () => 
       expect(res.status).toBe(403);
     });
 
+    it('lists only the batches they teach, and asking for another teacher widens nothing', async () => {
+      const teacher = as(teacherToken);
+      const mine = await teacher.get('/api/v1/batches');
+      expect(mine.status, JSON.stringify(mine.body)).toBe(200);
+      expect(mine.body.data.map((b: any) => b.id)).toEqual([ids.taughtBatch]);
+
+      // A teacherId filter can only narrow the teacher's own batches, never reach another's
+      const other = await teacher.get('/api/v1/batches?teacherId=00000000-0000-4000-8000-000000000000');
+      expect(other.status).toBe(200);
+      expect(other.body.data).toEqual([]);
+      const self = await teacher.get(`/api/v1/batches?teacherId=${teacherId}`);
+      expect(self.body.data.map((b: any) => b.id)).toEqual([ids.taughtBatch]);
+
+      // Owners still see every batch
+      const all = await as(ownerToken).get('/api/v1/batches');
+      expect(all.body.data.map((b: any) => b.id)).toEqual(expect.arrayContaining([ids.taughtBatch, ids.otherBatch]));
+    });
+
+    it("refuses marks for a student who is not in the test's batch, even in a batch they teach", async () => {
+      const teacher = as(teacherToken);
+      const refused = await teacher.post(`/api/v1/tests/${ids.taughtTest}/marks`, {
+        results: [
+          { studentId: ids.taughtStudent, marksObtained: 70 },
+          { studentId: ids.otherStudent, marksObtained: 90 },
+        ],
+      });
+      expect(refused.status, JSON.stringify(refused.body)).toBe(400);
+      expect(refused.body.error.code).toBe('STUDENT_NOT_IN_BATCH');
+
+      // Nothing was stored for the batch, and the enrolled student alone is accepted
+      const accepted = await teacher.post(`/api/v1/tests/${ids.taughtTest}/marks`, {
+        results: [{ studentId: ids.taughtStudent, marksObtained: 70 }],
+      });
+      expect(accepted.status, JSON.stringify(accepted.body)).toBe(200);
+      expect(accepted.body.data.results).toHaveLength(1);
+    });
+
     it('gets 403 creating homework in a batch they do not teach', async () => {
       const res = await as(teacherToken).post('/api/v1/homework', {
         batchId: ids.otherBatch,
@@ -186,6 +232,36 @@ describe.skipIf(!enabled)('Authorization end-to-end (HTTP + PostgreSQL)', () => 
       const res = await as(ownerToken).post(`/api/v1/batches/${ids.taughtBatch}/students`, { studentId: foreignStudent });
       expect(res.status).toBeGreaterThanOrEqual(400);
       expect(res.status).toBeLessThan(500);
+    });
+  });
+
+  describe('a password change ends earlier sessions', () => {
+    it('rejects the old access token at once, and the new password signs in', async () => {
+      const owner = as(ownerToken);
+      const account = { email: 'pw.change@gamma.in', password: 'First!Passw0rd1', next: 'Second!Passw0rd2' };
+      await created(
+        await owner.post('/api/v1/teachers', {
+          name: 'Pia Password',
+          phone: '9876500099',
+          email: account.email,
+          password: account.password,
+        }),
+      );
+      const oldToken = await login(account.email, account.password);
+      expect((await as(oldToken).get('/api/v1/auth/me')).status).toBe(200);
+
+      const changed = await as(oldToken).post('/api/v1/auth/change-password', {
+        currentPassword: account.password,
+        newPassword: account.next,
+      });
+      expect(changed.status, JSON.stringify(changed.body)).toBe(200);
+
+      // Not "valid for up to 15 minutes more": refused on the very next request
+      const stale = await as(oldToken).get('/api/v1/auth/me');
+      expect(stale.status).toBe(401);
+
+      const freshToken = await login(account.email, account.next);
+      expect((await as(freshToken).get('/api/v1/auth/me')).status).toBe(200);
     });
   });
 

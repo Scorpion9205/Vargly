@@ -45,30 +45,39 @@ Two database users: `DATABASE_URL` is the application role (`vargly_app`, create
 
 Health: `/health/live` (process up) and `/health/ready` (database and Redis reachable) drive the Kubernetes probes.
 
-## 4. Failed and dead events
+## 4. The operations console (`/app/admin`)
 
-Every domain event is stored in `domain_events` with the handlers that completed. Failed handlers are retried by the worker (30 s, doubling, up to 1 h, 10 attempts), then the event becomes `DEAD`.
+Platform administrators see what needs a person: payments that arrived but were not applied, and events that failed ten times. The console shows the counts, lists both, and lets you retry a dead event or mark a payment resolved (with a note). It is reached only by users with the `SUPER_ADMIN` role; institute owners are refused even though they hold the `*` permission.
+
+**Create the first administrator** (there is no sign-up route for this role). Run `db:seed:rbac` first, then:
+
+```bash
+SUPER_ADMIN_EMAIL=you@example.com SUPER_ADMIN_PASSWORD='at least 12 characters'   pnpm --filter @vargly/api admin:create:dev      # from a built API: admin:create
+```
+
+Use an email no institute owner uses, because sign-in without an institute code refuses an email that matches several accounts. Running the command again resets that administrator's password.
+
+**Alerts.** Every 10 minutes the worker looks for dead events and unresolved review payments and emails `OPS_ALERT_EMAIL` once per distinct set of problems (and again after 24 hours if they are still open). This needs `SMTP_*`. Without `OPS_ALERT_EMAIL` the problem is only logged and shown in the console; the startup log lists it among the integrations. The Prometheus alerts in section 3 still apply.
+
+### Dead events
+
+Every domain event is stored in `domain_events` with the handlers that completed. Failed handlers are retried by the worker (30 s, doubling, up to 1 h, 10 attempts), then the event becomes `DEAD`. Fix the cause (a provider outage, bad credentials), then press **Retry** in the console; only handlers that have not succeeded run again. The same by hand, as the schema owner or with `SELECT set_config('app.rls_bypass','on',true)` in the same transaction:
 
 ```sql
--- What failed and why
 SELECT id, event_name, coaching_id, attempts, last_error, updated_at
 FROM domain_events WHERE status = 'DEAD' ORDER BY updated_at DESC LIMIT 50;
 
--- After fixing the cause: retry now (only handlers that have not succeeded run again)
 UPDATE domain_events SET status = 'FAILED', attempts = 0, next_attempt_at = now()
-WHERE id = '<event id>';
+WHERE id = '<event id>' AND status = 'DEAD';
 ```
 
-Run these as the schema owner or with `SELECT set_config('app.rls_bypass','on',true)` in the same transaction.
+## 5. Payments needing review
 
-## 5. Payments needing reconciliation
+Razorpay is used only for Vargly's own subscriptions and AI-credit packs; institutes record the fees they collect by marking installments paid in the dashboard.
 
-Logged as `RECONCILE` and counted by `vargly_payment_reconcile_total`:
+When the amount paid differs from the order's price, nothing is granted. The payment is kept with the status `NEEDS_REVIEW` and a note saying what was expected and what arrived, is counted by `vargly_payment_reconcile_total` and appears in the console. Look the payment up in Razorpay (the console shows its order and payment ids and the institute's contact details), then either refund it or settle the order by hand, and press **Mark resolved** with a note of what you did. Resolving is recorded (who, when, what) and the payment leaves the queue.
 
-- **Fee payments** (`source="fee"`): Razorpay captured the money but the installment was already paid or waived, or the currency was wrong. Find the payment id in the log, check the student's installments, then refund in Razorpay or apply it to another installment by hand.
-- **Vargly billing** (`source="billing"`, `AMOUNT_MISMATCH`): the amount paid differs from the order's price, so nothing was granted. Compare `billing_payments` (by `gateway_order_id`) with Razorpay, then refund or settle manually.
-
-Webhook retries and duplicate deliveries are safe: each gateway payment is recorded once.
+Webhook retries and duplicate deliveries are safe: each gateway payment is recorded once, and a retry of a flagged payment does not flag it again.
 
 ## 6. Routine operations
 
@@ -79,4 +88,4 @@ Webhook retries and duplicate deliveries are safe: each gateway payment is recor
 
 ## 7. Known gaps
 
-Tracked in [AUDIT_AND_REMEDIATION_PLAN.md](AUDIT_AND_REMEDIATION_PLAN.md). Notably: database backups and point-in-time recovery are outside this repository, and fee payments are collected on Vargly's own Razorpay account.
+Tracked in [AUDIT_AND_REMEDIATION_PLAN.md](AUDIT_AND_REMEDIATION_PLAN.md). Notably: database backups and point-in-time recovery are outside this repository, and there is no refund automation: refunds are made in the Razorpay dashboard.

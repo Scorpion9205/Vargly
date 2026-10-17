@@ -177,6 +177,7 @@ export class BatchService {
     isActive?: boolean;
     academicYear?: string;
     teacherId?: string;
+    batchIds?: string[];
   }): Promise<BatchResponseDto[]> {
     const batches = await this.batchRepository.findMany(filters);
     return batches.map(BatchMapper.toResponseDto);

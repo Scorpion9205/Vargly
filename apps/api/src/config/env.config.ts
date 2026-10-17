@@ -40,6 +40,8 @@ const envSchema = z.object({
       return /^\d+$/.test(v) ? Number(v) : v;
     }),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+  // Who is emailed when a payment needs review or an event has given up (see /app/admin)
+  OPS_ALERT_EMAIL: z.string().optional(),
   // Bearer token required to read /metrics (disabled in production when unset)
   METRICS_TOKEN: z.string().optional(),
   // Run the queue workers inside the API process too. Default: only in development, so a

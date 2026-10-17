@@ -54,6 +54,14 @@ export interface IBillingRepository {
   findPaymentByOrderId(gatewayOrderId: string): Promise<any | null>;
 }
 
+/** What was expected and what arrived, for the person who resolves the payment */
+export function mismatchNote(expectedPaise: number, input: SettlePaymentInput): string {
+  return (
+    `Order expected ${(expectedPaise / 100).toFixed(2)} INR but ${(input.amountPaidPaise / 100).toFixed(2)} INR ` +
+    `was paid (gateway payment ${input.gatewayPaymentId}). Nothing was applied; refund or fix the order.`
+  );
+}
+
 function periodEnd(from: Date, cycle: BillingCycle): Date {
   const end = new Date(from);
   if (cycle === 'MONTHLY') end.setMonth(end.getMonth() + 1);
@@ -149,7 +157,18 @@ export class PrismaBillingRepository implements IBillingRepository {
 
       const payment = await tx.billingPayment.findUnique({ where: { id: locked[0].id } });
       if (payment.status !== 'CREATED') return { kind: 'duplicate', payment } as const;
-      if (payment.amountPaise !== input.amountPaidPaise) return { kind: 'amount_mismatch', payment } as const;
+      if (payment.amountPaise !== input.amountPaidPaise) {
+        // Nothing is applied, but the payment must not live only in the logs: keep it for a person
+        const flagged = await tx.billingPayment.update({
+          where: { id: payment.id },
+          data: {
+            status: 'NEEDS_REVIEW',
+            gatewayPaymentId: input.gatewayPaymentId,
+            reviewNote: mismatchNote(payment.amountPaise, input),
+          },
+        });
+        return { kind: 'amount_mismatch', payment: flagged } as const;
+      }
 
       const invoiceNumber = await nextDocumentNumber(tx, 'platform', 'INV', input.paidAt);
       const settled = await tx.billingPayment.update({

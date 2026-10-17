@@ -47,9 +47,17 @@ function coaching(subscription: Partial<CoachingProfile['subscription']> = {}) {
 const sidebar = () => screen.getAllByRole('navigation', { name: 'App' })[0]!;
 
 describe('navigation', () => {
-  it('shows owners every section', () => {
-    const keys = visibleNav(() => true).flatMap((group) => group.items.map((item) => item.key));
-    expect(keys).toEqual(NAV_ITEMS.map((item) => item.key));
+  it('shows owners every institute section, but not the platform console', () => {
+    const keys = visibleNav(() => true, ['OWNER']).flatMap((group) => group.items.map((item) => item.key));
+    expect(keys).toEqual(NAV_ITEMS.filter((item) => !item.role).map((item) => item.key));
+    expect(keys).not.toContain('admin');
+  });
+
+  it('gives a platform administrator the console and none of the institute sections', () => {
+    const keys = visibleNav(() => true, ['SUPER_ADMIN']).flatMap((group) =>
+      group.items.map((item) => item.key),
+    );
+    expect(keys).toEqual(['admin']);
   });
 
   it("hides sections outside a teacher's permissions", async () => {

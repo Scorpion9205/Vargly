@@ -23,6 +23,7 @@ import { ImportModule } from '../modules/import/import.module.js';
 import { WhatsAppAssistantModule } from '../modules/whatsapp-assistant/whatsapp-assistant.module.js';
 import { RiskEngineModule } from '../modules/risk-engine/risk-engine.module.js';
 import { AiModule } from '../modules/ai/ai.module.js';
+import { OpsModule } from '../modules/ops/ops.module.js';
 import { StorageModule } from '../modules/storage/storage.module.js';
 import { workerRegistry } from '../workers/worker.registry.js';
 import { eventBus } from '../events/event-bus.js';
@@ -71,6 +72,7 @@ function createModules() {
   const report = ReportModule.init();
   const dashboard = DashboardModule.init();
   const importModule = ImportModule.init();
+  const ops = OpsModule.init();
 
   return {
     storage,
@@ -99,6 +101,7 @@ function createModules() {
     report,
     dashboard,
     import: importModule,
+    ops,
   };
 }
 

@@ -95,6 +95,22 @@ export class TestService {
       }
     }
 
+    // Marks belong to the test's own batch: a student of another batch must not get one, even
+    // from a teacher who legitimately teaches this batch
+    const studentIds = [...new Set(dto.results.map((entry) => entry.studentId))];
+    const enrolled = new Set(
+      await this.testRepository.findEnrolledStudentIds(existingTest.batchId, studentIds),
+    );
+    const outsiders = studentIds.filter((id) => !enrolled.has(id));
+    if (outsiders.length > 0) {
+      throw new AppError(
+        'STUDENT_NOT_IN_BATCH',
+        "Some students are not in this test's batch",
+        StatusCodes.BAD_REQUEST,
+        { studentIds: outsiders },
+      );
+    }
+
     const updatedTest = await this.testRepository.upsertMarks(testId, coachingId, dto.results);
     const responseDto = TestMapper.toResponseDto(updatedTest);
 

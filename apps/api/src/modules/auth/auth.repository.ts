@@ -132,7 +132,8 @@ export class PrismaAuthUserRepository implements IAuthUserRepository {
     return RequestContextService.runAsSystem('auth:updatePassword', async () => {
       await (this.prisma as any).user.update({
         where: { id: userId },
-        data: { passwordHash },
+        // The same update ends the user's earlier access tokens (see PermissionResolver)
+        data: { passwordHash, tokensValidAfter: new Date() },
       });
     });
   }

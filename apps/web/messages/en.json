@@ -267,7 +267,8 @@
       "academics": "Academics",
       "money": "Money",
       "institute": "Institute",
-      "account": "Account"
+      "account": "Account",
+      "platform": "Platform"
     },
     "nav": {
       "dashboard": "Dashboard",
@@ -283,7 +284,8 @@
       "notices": "Notices",
       "reports": "Reports",
       "settings": "Settings",
-      "billing": "Billing"
+      "billing": "Billing",
+      "admin": "Operations"
     },
     "subscription": {
       "trialEnding": "{days, plural, =0 {Your free trial ends today.} one {Your free trial ends tomorrow.} other {Your free trial ends in # days.}}",
@@ -1280,6 +1282,46 @@
       "everywhereAction": "Sign out everywhere",
       "everywhereTitle": "Sign out on every device?",
       "everywhereBody": "You'll be signed out here too, and need your password to sign in again."
+    }
+  },
+  "Admin": {
+    "title": "Operations",
+    "subtitle": "What needs a person's attention across every institute.",
+    "summary": {
+      "label": "Summary",
+      "payments": "Payments to review",
+      "dead": "Dead events",
+      "failed": "Events retrying",
+      "notifications": "Failed messages (24 h)"
+    },
+    "payments": {
+      "title": "Payments to review",
+      "body": "Money arrived that Vargly could not apply to an order, so the institute's plan or credits did not change. Fix it in Razorpay (refund, or settle the order by hand), then mark it resolved.",
+      "empty": "No payments need review",
+      "badge": "Not applied",
+      "credits": "{credits} AI credits",
+      "plan": "Plan {plan}",
+      "expected": "order price {amount}",
+      "order": "Order",
+      "gatewayPayment": "Razorpay payment",
+      "contact": "Contact",
+      "flagged": "Flagged",
+      "resolve": "Mark resolved",
+      "noteLabel": "What was done",
+      "notePlaceholder": "What you did, e.g. refunded in Razorpay",
+      "confirm": "Save as resolved",
+      "resolved": "Marked resolved",
+      "resolveFailed": "Could not mark this resolved"
+    },
+    "events": {
+      "title": "Dead events",
+      "body": "A background step failed 10 times and was given up on. Fix the cause (a provider outage, bad credentials), then retry to give it a fresh set of attempts.",
+      "empty": "No dead events",
+      "meta": "{attempts} attempts · last failed {when}",
+      "retry": "Retry",
+      "requeued": "Queued for another try",
+      "retryFailed": "Could not retry this event",
+      "ids": "Event {id} · institute {coaching}"
     }
   },
   "Billing": {

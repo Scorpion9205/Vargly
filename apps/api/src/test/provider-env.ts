@@ -1,0 +1,20 @@
+/** Credentials of external services. Tests must never hold real ones (see vitest.config.ts). */
+export const PROVIDER_ENV_KEYS = [
+  'RAZORPAY_KEY_ID',
+  'RAZORPAY_KEY_SECRET',
+  'RAZORPAY_WEBHOOK_SECRET',
+  'OPENAI_API_KEY',
+  'ANTHROPIC_API_KEY',
+  'GEMINI_API_KEY',
+  'WHATSAPP_PHONE_NUMBER_ID',
+  'WHATSAPP_API_TOKEN',
+  'WHATSAPP_APP_SECRET',
+  'WHATSAPP_BUSINESS_ACCOUNT_ID',
+  'SMTP_HOST',
+  'SMTP_USER',
+  'SMTP_PASS',
+  'CLOUDINARY_CLOUD_NAME',
+  'CLOUDINARY_API_KEY',
+  'CLOUDINARY_API_SECRET',
+  'OPS_ALERT_EMAIL',
+] as const;

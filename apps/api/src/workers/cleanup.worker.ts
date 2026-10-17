@@ -2,6 +2,10 @@ import { Worker, Job } from 'bullmq';
 import { QueueRegistry, QUEUE_NAMES } from '../queues/queue.registry.js';
 import { logger } from '../common/logger/logger.service.js';
 import { runJobAsSystem } from './job-context.js';
+import { envConfig } from '../config/env.config.js';
+import { OpsAlertService, type OpsAlertResult } from '../modules/ops/ops-alert.service.js';
+import { PrismaOpsRepository } from '../modules/ops/ops.repository.js';
+import { SmtpEmailAdapter } from '../modules/notifications/adapters/smtp-email.adapter.js';
 
 export interface CleanupJobPayload {
   readonly dryRun?: boolean;
@@ -14,10 +18,26 @@ export interface CleanupJobResult {
   readonly prunedCount: number;
 }
 
+// Cheap query, so it runs often; the alert itself is sent once per distinct set of problems
+export const OPS_ALERT_JOB = 'ops_alert_check';
+
 export class CleanupWorker {
   private worker: Worker | null = null;
+  private opsAlert: OpsAlertService | null = null;
 
   public constructor(private readonly redisClient?: any) {}
+
+  // Built on first use: the database client is not needed until a check actually runs
+  private getOpsAlert(): OpsAlertService {
+    this.opsAlert ??= new OpsAlertService(
+      new PrismaOpsRepository(),
+      new SmtpEmailAdapter(),
+      () => this.redisClient || QueueRegistry.getInstance().getRedisClient(),
+      () => envConfig.get('OPS_ALERT_EMAIL') || undefined,
+      () => `${envConfig.get('FRONTEND_URL')}/app/admin`,
+    );
+    return this.opsAlert;
+  }
 
   public async start(): Promise<Worker> {
     const queueRegistry = QueueRegistry.getInstance();
@@ -36,9 +56,18 @@ export class CleanupWorker {
       },
     );
 
+    await cleanupQueue.add(
+      OPS_ALERT_JOB,
+      {},
+      { jobId: OPS_ALERT_JOB, repeat: { pattern: '*/10 * * * *' }, removeOnComplete: true, removeOnFail: 50 },
+    );
+
     this.worker = new Worker(
       QUEUE_NAMES.CLEANUP,
-      async (job: Job<CleanupJobPayload>): Promise<CleanupJobResult> => {
+      async (job: Job<CleanupJobPayload>): Promise<CleanupJobResult | OpsAlertResult> => {
+        if (job.name === OPS_ALERT_JOB) {
+          return runJobAsSystem(job, () => this.getOpsAlert().check());
+        }
         logger.info(`[CleanupWorker] Running system cleanup job: ${job.name} (id: ${job.id})`);
         return runJobAsSystem(job, () => this.processJob(job.data));
       },

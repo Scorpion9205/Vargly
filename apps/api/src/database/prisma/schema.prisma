@@ -176,6 +176,8 @@ model User {
   lockedUntil     DateTime?      @map("locked_until") @db.Timestamptz()
   lastLoginAt     DateTime?      @map("last_login_at") @db.Timestamptz()
   emailVerifiedAt DateTime?      @map("email_verified_at") @db.Timestamptz()
+  // Access tokens issued before this moment are refused (set when the password changes)
+  tokensValidAfter DateTime?     @map("tokens_valid_after") @db.Timestamptz()
   createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt       DateTime       @updatedAt @map("updated_at") @db.Timestamptz()
   deletedAt       DateTime?      @map("deleted_at") @db.Timestamptz()
@@ -241,7 +243,7 @@ model UserRole {
   id              String           @id @default(uuid()) @db.Uuid
   userId          String           @map("user_id") @db.Uuid
   roleId          String           @map("role_id") @db.Uuid
-  coachingId      String           @map("coaching_id") @db.Uuid
+  coachingId      String?          @map("coaching_id") @db.Uuid // null for SUPER_ADMIN, who belongs to no coaching
   createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz()
 
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -964,6 +966,7 @@ enum BillingPaymentStatus {
   CREATED
   PAID
   FAILED
+  NEEDS_REVIEW // money was taken but the order was not applied (e.g. wrong amount); a person resolves it
 
   @@map("billing_payment_status")
 }
@@ -984,6 +987,9 @@ model BillingPayment {
   gatewayPaymentId String?              @unique @map("gateway_payment_id") @db.VarChar(100)
   invoiceNumber    String?              @unique @map("invoice_number") @db.VarChar(50)
   paidAt           DateTime?            @map("paid_at") @db.Timestamptz()
+  reviewNote       String?              @map("review_note") @db.Text
+  reviewedAt       DateTime?            @map("reviewed_at") @db.Timestamptz()
+  reviewedBy       String?              @map("reviewed_by") @db.Uuid
   createdBy        String?              @map("created_by") @db.Uuid
   createdAt        DateTime             @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt        DateTime             @updatedAt @map("updated_at") @db.Timestamptz()
@@ -991,6 +997,7 @@ model BillingPayment {
   coaching         Coaching             @relation(fields: [coachingId], references: [id], onDelete: Restrict)
 
   @@index([coachingId, createdAt])
+  @@index([status])
   @@map("billing_payments")
 }
 

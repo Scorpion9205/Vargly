@@ -8,6 +8,12 @@ This document lists every finding, ranks it, and assigns it to a remediation pha
 
 Status legend: ✅ fixed · 🚧 in progress · ⬜ not started
 
+> **Scope decision (2026-10-17):** Razorpay is used only for Vargly subscriptions and AI-credit purchases (the `billing` module). Coaching fees are recorded by the owner marking installments paid in the dashboard. The fee payment-link endpoint and the public `/fees/webhook` route were removed, so findings and phase items above that mention fee webhooks (C6, C8 and the Phase 3 fee-webhook bullets) describe code that no longer exists. Manual payments keep the row lock, exact decimals, gap-free receipts and the optional `transactionRef` duplicate check.
+
+> **Operations console (2026-10-17):** dead events and unapplied subscription payments now have an admin console (`/app/admin`, `SUPER_ADMIN` only) and an email alert (`OPS_ALERT_EMAIL`); payments that cannot be applied are stored as `NEEDS_REVIEW` instead of living only in logs. This closes the Phase 3/4 follow-ups about `RECONCILE` payments and `DEAD` events being visible only in logs. Found on the way: `user_roles.coaching_id` was NOT NULL while a `SUPER_ADMIN` has no coaching, so the role could never be assigned; it is nullable now. See [RUNBOOK.md](RUNBOOK.md) §4.
+
+> **Follow-ups closed (2026-10-17):** (1) tests no longer pick up real provider keys from `apps/api/.env` (Prisma loads that file into `process.env`): `vitest.config.ts` blanks them first and `test-isolation.spec.ts` guards it; (2) `GET /batches` now lists only a teacher's own batches (students and parents already did), and marks can only be uploaded for students enrolled in the test's batch (`STUDENT_NOT_IN_BATCH`); (3) a password change or reset ends the user's earlier access tokens at once (`users.tokens_valid_after`, checked against the token's millisecond `issuedAtMs` claim) instead of leaving them valid for up to 15 minutes. These remove the matching items from the Phase 2 "known limitations".
+
 ---
 
 ## 1. Findings

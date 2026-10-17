@@ -18,6 +18,8 @@ export interface ITestRepository {
   findByBatch(batchId: string): Promise<any[]>;
   findByStudent(studentId: string): Promise<any[]>;
   upsertMarks(testId: string, coachingId: string, entries: StudentMarkEntryDto[]): Promise<any>;
+  /** Of the given students, the ones who are (or were) enrolled in the batch */
+  findEnrolledStudentIds(batchId: string, studentIds: string[]): Promise<string[]>;
   update(id: string, data: any): Promise<any>;
   /** Soft delete; the tenant extension sets deletedAt */
   softDelete(id: string): Promise<void>;
@@ -93,6 +95,14 @@ export class PrismaTestRepository implements ITestRepository {
       },
       orderBy: { test: { testDate: 'desc' } },
     });
+  }
+
+  public async findEnrolledStudentIds(batchId: string, studentIds: string[]): Promise<string[]> {
+    const rows: Array<{ studentId: string }> = await (this.prisma as any).batchStudent.findMany({
+      where: { batchId, studentId: { in: studentIds } },
+      select: { studentId: true },
+    });
+    return [...new Set(rows.map((row) => row.studentId))];
   }
 
   public async upsertMarks(testId: string, coachingId: string, entries: StudentMarkEntryDto[]): Promise<any> {

@@ -18,7 +18,12 @@ export function SectionGuard({ children }: { children: ReactNode }) {
   const user = useSession()?.user;
   const item = navItemFor(usePathname());
 
-  if (item?.permission && !can(user, item.permission)) {
+  const denied =
+    item?.role !== undefined
+      ? !user?.roles.includes(item.role)
+      : item?.permission !== undefined && !can(user, item.permission);
+
+  if (denied) {
     return (
       <StatePanel icon={<Lock className="size-5" aria-hidden />} title={t('title')}>
         <p>{t('body')}</p>

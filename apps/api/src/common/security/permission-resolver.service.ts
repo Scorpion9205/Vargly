@@ -11,6 +11,8 @@ import {
 export interface ResolvedAccess {
   readonly roles: RoleType[];
   readonly permissions: string[];
+  /** Access tokens issued before this moment (milliseconds since the epoch) are refused */
+  readonly tokensValidAfter?: number;
 }
 
 export interface IAccessCacheInvalidator {
@@ -103,7 +105,11 @@ export class PermissionResolver implements IAccessCacheInvalidator {
       for (const rp of role.rolePermissions) permissions.add(rp.permission.code);
     }
 
-    return { roles: [...roles], permissions: [...permissions] };
+    return {
+      roles: [...roles],
+      permissions: [...permissions],
+      ...(user.tokensValidAfter ? { tokensValidAfter: new Date(user.tokensValidAfter).getTime() } : {}),
+    };
   }
 
   private async readCache(userId: string): Promise<ResolvedAccess | null> {

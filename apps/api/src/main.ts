@@ -124,6 +124,7 @@ export function createApp(): Express {
   app.use('/api/v1/reports', m.report.router);
   app.use('/api/v1/dashboard', m.dashboard.router);
   app.use('/api/v1/import', m.import.router);
+  app.use('/api/v1/admin/ops', m.ops.router);
 
   // Global Error Handler (must be last)
   app.use(errorHandlerMiddleware);
