@@ -65,9 +65,11 @@ export function AddQuestionsDialog({
               },
               onError: (failure) =>
                 setError(
-                  isApiError(failure) && failure.code === 'AI_BAD_RESPONSE'
-                    ? t('failed')
-                    : describeError(failure),
+                  isApiError(failure) && failure.code === 'AI_BUSY'
+                    ? t('busy')
+                    : isApiError(failure) && failure.code === 'AI_BAD_RESPONSE'
+                      ? t('failed')
+                      : describeError(failure),
                 ),
             },
           );

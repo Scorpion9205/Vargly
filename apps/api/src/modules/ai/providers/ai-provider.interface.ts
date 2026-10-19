@@ -19,6 +19,17 @@ export interface AiCompletionResult {
   readonly totalTokens: number;
 }
 
+/** A provider's own refusal (HTTP status kept, so a rate limit can be told from a real fault) */
+export class AiProviderError extends Error {
+  public constructor(
+    message: string,
+    public readonly status: number,
+  ) {
+    super(message);
+    this.name = 'AiProviderError';
+  }
+}
+
 export interface IAiProvider {
   readonly providerType: AiProviderType;
   generateCompletion(options: AiCompletionOptions): Promise<AiCompletionResult>;

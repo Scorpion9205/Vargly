@@ -12,6 +12,7 @@ import type {
 import type { QuestionGenerator } from '../../modules/papers/question-generator.js';
 import type { Question } from '../../modules/papers/paper.types.js';
 import { InsufficientAiCreditsError } from '../../modules/ai/ai.service.js';
+import { AiProviderError } from '../../modules/ai/providers/ai-provider.interface.js';
 import { MockStorageService } from '../../common/storage/mock-storage.service.js';
 import { PAPER_EVENTS } from '../../modules/papers/paper.events.js';
 
@@ -162,6 +163,16 @@ describe('PaperService', () => {
       });
       expect(repo.papers.size).toBe(0);
     });
+  });
+
+  it('tells the teacher the AI is busy when the provider\'s free limit is hit, and keeps nothing', async () => {
+    generate.mockRejectedValueOnce(new AiProviderError('Groq API request failed (429): rate limit', 429));
+    await expect(generated()).rejects.toMatchObject({ code: 'AI_BUSY', statusCode: 429 });
+    expect(repo.papers.size).toBe(0);
+
+    // Any other provider failure is still a real fault
+    generate.mockRejectedValueOnce(new AiProviderError('Groq API request failed (500): oops', 500));
+    await expect(generated()).rejects.toMatchObject({ message: expect.stringContaining('(500)') });
   });
 
   describe('who sees what', () => {

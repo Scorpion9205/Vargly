@@ -7,6 +7,7 @@ import { IEventBus } from '../../events/event-bus.interface.js';
 import { IStorageService } from '../../common/storage/storage.interface.js';
 import { assertContentMatchesType, assertUploadAllowed } from '../../common/storage/upload-policy.js';
 import { InsufficientAiCreditsError } from '../ai/ai.service.js';
+import { AiProviderError } from '../ai/providers/ai-provider.interface.js';
 import type { CreateHomeworkDto } from '../homework/dto/homework.dto.js';
 import { createPaperSharedEvent } from './paper.events.js';
 import {
@@ -201,6 +202,14 @@ export class PaperService {
           balance: err.currentBalance,
           required: err.requiredCredits,
         });
+      }
+      // The free AI tier is shared by every institute, so hitting its limit is expected now and then
+      if (err instanceof AiProviderError && err.status === 429) {
+        throw new AppError(
+          'AI_BUSY',
+          'The AI is busy right now. Please try again in a minute.',
+          StatusCodes.TOO_MANY_REQUESTS,
+        );
       }
       throw err;
     }

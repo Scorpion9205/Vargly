@@ -193,6 +193,22 @@ describe('GenerateForm', () => {
     expect(screen.getByText('Ask for at most 40 questions at a time')).toBeInTheDocument();
   });
 
+  it('says the AI is busy, and nothing else, when the free limit is hit', async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.post(`${API_URL}/papers/generate`, () =>
+        HttpResponse.json({ error: { code: 'AI_BUSY', message: 'busy' } }, { status: 429 }),
+      ),
+    );
+    renderWithIntl(<GenerateForm />);
+    await fill(user);
+    await user.click(screen.getByRole('button', { name: 'Generate paper' }));
+
+    expect(await screen.findByText('The AI is busy right now. Please try again in a minute.')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Buy credits' })).toBeNull();
+    expect(push).not.toHaveBeenCalled();
+  });
+
   it('sends the teacher to billing when the AI credits have run out', async () => {
     const user = userEvent.setup();
     server.use(

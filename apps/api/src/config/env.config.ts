@@ -78,7 +78,7 @@ const envSchema = z.object({
   AI_MODEL_CLAUDE: z.string().default('claude-sonnet-5'),
   AI_MODEL_OPENAI: z.string().default('gpt-4o-mini'),
   AI_MODEL_GEMINI: z.string().default('gemini-2.5-flash'),
-  AI_MODEL_GROQ: z.string().default('llama-3.3-70b-versatile'),
+  AI_MODEL_GROQ: z.string().default('openai/gpt-oss-120b'),
   OPENAI_EMBEDDING_MODEL: z.string().default('text-embedding-3-small'),
   GEMINI_EMBEDDING_MODEL: z.string().default('gemini-embedding-001'),
   // Object Storage (Cloudinary / Local Mock)

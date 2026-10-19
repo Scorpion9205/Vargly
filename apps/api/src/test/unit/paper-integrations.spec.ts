@@ -31,9 +31,9 @@ describe('Groq', () => {
     expect(url).toBe('https://api.groq.com/openai/v1/chat/completions');
     expect(init.headers.Authorization).toBe('Bearer groq-key');
     const body = JSON.parse(init.body);
-    expect(body).toMatchObject({ model: 'llama-3.3-70b-versatile', response_format: { type: 'json_object' } });
+    expect(body).toMatchObject({ model: 'openai/gpt-oss-120b', response_format: { type: 'json_object' } });
     expect(body.messages).toEqual([{ role: 'system', content: 's' }, { role: 'user', content: 'p' }]);
-    expect(result).toMatchObject({ provider: AiProviderType.GROQ, model: 'llama-3.3-70b-versatile', totalTokens: 30 });
+    expect(result).toMatchObject({ provider: AiProviderType.GROQ, model: 'openai/gpt-oss-120b', totalTokens: 30 });
   });
 
   it('does not ask for JSON unless told to, and OpenAI keeps working as before', async () => {
@@ -46,9 +46,12 @@ describe('Groq', () => {
     expect(JSON.parse(init.body)).not.toHaveProperty('response_format');
   });
 
-  it('names the provider when it fails, so the logs and the error say which one', async () => {
+  it('names the provider when it fails, and keeps the status so a rate limit can be told apart', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 429, text: async () => 'rate limit' }));
-    await expect(new GroqAiAdapter('k').generateCompletion({ prompt: 'x' })).rejects.toThrow('Groq API request failed (429)');
+    await expect(new GroqAiAdapter('k').generateCompletion({ prompt: 'x' })).rejects.toMatchObject({
+      message: expect.stringContaining('Groq API request failed (429)'),
+      status: 429,
+    });
   });
 
   it('is the provider chosen when its key is set, ahead of the others', () => {

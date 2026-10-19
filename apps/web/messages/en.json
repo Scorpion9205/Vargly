@@ -1358,7 +1358,8 @@
       "buyCredits": "Buy credits",
       "created": "Paper ready. Choose the questions you want to keep.",
       "shortBy": "Only some of the questions came back usable. You can add more from the paper.",
-      "failed": "The AI could not write the paper this time. Please try again."
+      "failed": "The AI could not write the paper this time. Please try again.",
+      "busy": "The AI is busy right now. Please try again in a minute."
     },
     "editor": {
       "back": "All papers",
@@ -1418,7 +1419,8 @@
       "adding": "Writing questions...",
       "added": "Questions added",
       "shortBy": "Only some of the questions came back usable.",
-      "failed": "The AI could not write more questions. Please try again."
+      "failed": "The AI could not write more questions. Please try again.",
+      "busy": "The AI is busy right now. Please try again in a minute."
     },
     "share": {
       "title": "Share with a batch",

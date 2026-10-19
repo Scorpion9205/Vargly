@@ -2,6 +2,7 @@ import { AiProviderType } from '@vargly/types';
 import {
   AiCompletionOptions,
   AiCompletionResult,
+  AiProviderError,
   IAiProvider,
 } from './ai-provider.interface.js';
 import { envConfig } from '../../../config/env.config.js';
@@ -82,7 +83,7 @@ export class OpenAiAdapter implements IAiProvider {
 
       if (!response.ok) {
         const errorBody = await response.text();
-        throw new Error(`${label} API request failed (${response.status}): ${errorBody}`);
+        throw new AiProviderError(`${label} API request failed (${response.status}): ${errorBody}`, response.status);
       }
 
       const data = (await response.json()) as any;
