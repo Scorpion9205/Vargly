@@ -24,6 +24,7 @@ import { WhatsAppAssistantModule } from '../modules/whatsapp-assistant/whatsapp-
 import { RiskEngineModule } from '../modules/risk-engine/risk-engine.module.js';
 import { AiModule } from '../modules/ai/ai.module.js';
 import { OpsModule } from '../modules/ops/ops.module.js';
+import { EnquiryModule } from '../modules/enquiries/enquiry.module.js';
 import { PaperModule } from '../modules/papers/paper.module.js';
 import { StorageModule } from '../modules/storage/storage.module.js';
 import { workerRegistry } from '../workers/worker.registry.js';
@@ -74,6 +75,7 @@ function createModules() {
   const dashboard = DashboardModule.init();
   const importModule = ImportModule.init();
   const ops = OpsModule.init();
+  const enquiries = EnquiryModule.init();
   const papers = PaperModule.init({
     aiService: ai.service,
     homeworkService: homework.service,
@@ -109,6 +111,7 @@ function createModules() {
     import: importModule,
     ops,
     papers,
+    enquiries,
   };
 }
 

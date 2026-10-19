@@ -28,6 +28,9 @@ export const CLIENT_NAMESPACES = [
   'Billing',
   'Admin',
   'Papers',
+  'Enquiries',
+  'Landing',
+  'Footer',
   'Errors',
 ] as const;
 

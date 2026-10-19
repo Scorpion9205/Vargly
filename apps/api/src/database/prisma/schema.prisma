@@ -1112,3 +1112,48 @@ model PaperShare {
   @@index([coachingId, paperId])
   @@map("paper_shares")
 }
+
+// ---------------------------------------------------------------------------
+// 14. Enquiries: people who ask about the institute (fees, timings) and are called back later
+// ---------------------------------------------------------------------------
+
+enum EnquirySource {
+  WALK_IN
+  PHONE
+  WHATSAPP
+  REFERRAL
+  OTHER
+
+  @@map("enquiry_source")
+}
+
+enum EnquiryStatus {
+  NEW
+  CONTACTED
+  ADMITTED
+  NOT_INTERESTED
+
+  @@map("enquiry_status")
+}
+
+model Enquiry {
+  id              String        @id @default(uuid()) @db.Uuid
+  coachingId      String        @map("coaching_id") @db.Uuid
+  name            String        @db.VarChar(255)
+  phone           String        @db.VarChar(30)
+  studentName     String?       @map("student_name") @db.VarChar(255)
+  interestedIn    String?       @map("interested_in") @db.VarChar(255)
+  source          EnquirySource @default(WALK_IN)
+  status          EnquiryStatus @default(NEW)
+  notes           String?       @db.Text
+  followUpOn      DateTime?     @map("follow_up_on") @db.Date
+  lastContactedAt DateTime?     @map("last_contacted_at") @db.Timestamptz()
+  createdBy       String?       @map("created_by") @db.Uuid
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz()
+  deletedAt       DateTime?     @map("deleted_at") @db.Timestamptz()
+
+  @@index([coachingId, status, followUpOn])
+  @@index([coachingId, createdAt])
+  @@map("enquiries")
+}

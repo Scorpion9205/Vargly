@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   type LucideIcon,
   Megaphone,
+  PhoneIncoming,
   ReceiptIndianRupee,
   Settings,
   Users,
@@ -34,7 +35,8 @@ export type NavKey =
   | 'settings'
   | 'billing'
   | 'admin'
-  | 'papers';
+  | 'papers'
+  | 'enquiries';
 
 export interface NavItem {
   key: NavKey;
@@ -84,6 +86,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     key: 'institute',
     items: [
+      { key: 'enquiries', href: '/app/enquiries', icon: PhoneIncoming, permission: 'enquiries:manage' },
       { key: 'teachers', href: '/app/teachers', icon: GraduationCap, permission: 'teachers:read' },
       { key: 'notices', href: '/app/notices', icon: Megaphone, permission: 'notices:read' },
       { key: 'reports', href: '/app/reports', icon: BarChart3, permission: 'reports:read' },

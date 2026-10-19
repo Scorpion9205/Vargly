@@ -51,6 +51,7 @@ export const TENANT_SCOPED_MODELS = new Set<string>([
   'BillingPayment',
   'Paper',
   'PaperShare',
+  'Enquiry',
 ]);
 
 // Models that support soft deletion (have deletedAt column)
@@ -73,6 +74,7 @@ export const SOFT_DELETE_MODELS = new Set<string>([
   'Notice',
   'CoachingKnowledgeBase',
   'Paper',
+  'Enquiry',
 ]);
 
 // Models that track createdBy

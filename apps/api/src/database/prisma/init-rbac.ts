@@ -56,6 +56,7 @@ const ALL_PERMISSIONS = [
   { code: 'audit:read', module: 'audit', action: 'read', description: 'View audit trail' },
   { code: 'ai:manage_credits', module: 'ai', action: 'manage_credits', description: 'Top up AI credit wallet' },
   { code: 'papers:manage', module: 'papers', action: 'manage', description: 'Generate, upload and share question papers' },
+  { code: 'enquiries:manage', module: 'enquiries', action: 'manage', description: 'Record and follow up admission enquiries' },
   { code: 'ai:view_logs', module: 'ai', action: 'view_logs', description: 'View AI usage ledger' },
 ];
 

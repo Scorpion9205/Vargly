@@ -6,7 +6,9 @@
   "Nav": {
     "features": "Features",
     "howItWorks": "How it works",
+    "papers": "AI Papers",
     "pricing": "Pricing",
+    "faq": "FAQ",
     "signIn": "Sign in",
     "startTrial": "Start free trial",
     "openMenu": "Open menu",
@@ -53,6 +55,10 @@
     "academics": {
       "title": "Tests and homework",
       "body": "Enter marks, share results and track homework for every batch."
+    },
+    "papers": {
+      "title": "AI question papers",
+      "body": "Generate a paper in English or Hindi, keep the questions you want, and share it with a batch as a link on WhatsApp."
     },
     "insights": {
       "title": "AI insights",
@@ -134,6 +140,10 @@
     "product": "Product",
     "account": "Account",
     "contact": "Contact",
+    "company": "Vargly",
+    "backToTop": "Back to top",
+    "madeFor": "Made for coaching institutes across India.",
+    "whatsappNote": "Parent updates are sent on WhatsApp.",
     "rights": "© {year} Vargly. All rights reserved."
   },
   "NotFound": {
@@ -286,7 +296,8 @@
       "settings": "Settings",
       "billing": "Billing",
       "admin": "Operations",
-      "papers": "AI Papers"
+      "papers": "AI Papers",
+      "enquiries": "Enquiries"
     },
     "subscription": {
       "trialEnding": "{days, plural, =0 {Your free trial ends today.} one {Your free trial ends tomorrow.} other {Your free trial ends in # days.}}",
@@ -1285,6 +1296,84 @@
       "everywhereBody": "You'll be signed out here too, and need your password to sign in again."
     }
   },
+  "Enquiries": {
+    "title": "Enquiries",
+    "subtitle": "Note down everyone who asks about fees or timings, then call them back and mark what happened.",
+    "add": "Add enquiry",
+    "viewLabel": "Show enquiries",
+    "view": {
+      "all": "All",
+      "due": "Call today",
+      "NEW": "New",
+      "CONTACTED": "Called",
+      "ADMITTED": "Joined",
+      "NOT_INTERESTED": "Not interested"
+    },
+    "search": "Search enquiries",
+    "clearSearch": "Clear search",
+    "searchPlaceholder": "Name or phone",
+    "status": {
+      "NEW": "New",
+      "CONTACTED": "Called",
+      "ADMITTED": "Joined",
+      "NOT_INTERESTED": "Not interested"
+    },
+    "source": {
+      "WALK_IN": "Walked in",
+      "PHONE": "Phone call",
+      "WHATSAPP": "WhatsApp",
+      "REFERRAL": "Referral",
+      "OTHER": "Other"
+    },
+    "action": {
+      "CONTACTED": "Mark called",
+      "ADMITTED": "Joined",
+      "NOT_INTERESTED": "Not interested",
+      "reopen": "Reopen"
+    },
+    "marked": {
+      "NEW": "Enquiry reopened",
+      "CONTACTED": "Marked as called",
+      "ADMITTED": "Marked as joined",
+      "NOT_INTERESTED": "Marked as not interested"
+    },
+    "dueBadge": "Call due",
+    "forStudent": "For {name}",
+    "noDetails": "No other details",
+    "whatsapp": "WhatsApp",
+    "askedOn": "Asked on {date}",
+    "calledOn": "Last called {date}",
+    "followUpOn": "Call on {date}",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleted": "Enquiry deleted",
+    "deleteTitle": "Delete this enquiry?",
+    "deleteBody": "{name}'s enquiry will be removed from the list.",
+    "empty": {
+      "title": "No enquiries yet",
+      "body": "When someone asks about fees or timings, add them here with the day you will call back.",
+      "filtered": "No enquiries match this view."
+    },
+    "form": {
+      "createTitle": "Add enquiry",
+      "editTitle": "Edit enquiry",
+      "name": "Parent or student name",
+      "nameMin": "Enter a name",
+      "phone": "Phone number",
+      "phoneInvalid": "Enter a valid phone number",
+      "studentName": "Student name",
+      "interestedIn": "Interested in",
+      "interestedInHint": "For example Class 10 maths, or JEE batch",
+      "source": "How did they reach you",
+      "followUpOn": "Call back on",
+      "followUpHint": "It shows under Call today from that day",
+      "notes": "Notes",
+      "notesPlaceholder": "What they asked, what fees you told them, what they said",
+      "save": "Save enquiry",
+      "saved": "Enquiry saved",
+      "updated": "Enquiry updated"
+    }
+  },
   "Papers": {
     "title": "AI Papers",
     "subtitle": "Make question papers with AI, choose the questions you want, and share them with a batch on WhatsApp.",
@@ -1458,6 +1547,123 @@
       "notPdf": "Choose a PDF file",
       "tooBig": "The file is larger than 10 MB",
       "created": "PDF uploaded. Share it with a batch."
+    }
+  },
+  "Landing": {
+    "scroll": "Scroll",
+    "heroTrust": {
+      "trial": "{days}-day free trial",
+      "card": "No card needed",
+      "whatsapp": "Updates on WhatsApp"
+    },
+    "floating": {
+      "attendance": "Class 10 · attendance",
+      "attendanceValue": "93% present today",
+      "delivered": "Delivered on WhatsApp",
+      "message": "Aarav was marked absent today.",
+      "fees": "Fees this month",
+      "feesValue": "₹1,84,500",
+      "paper": "AI paper ready",
+      "paperValue": "20 questions · Hindi"
+    },
+    "marquee": {
+      "m1": "Attendance",
+      "m2": "Fees and receipts",
+      "m3": "Homework",
+      "m4": "Tests and results",
+      "m5": "Parent updates on WhatsApp",
+      "m6": "AI question papers",
+      "m7": "Reports",
+      "m8": "Salaries"
+    },
+    "story": {
+      "eyebrow": "On WhatsApp",
+      "title": "Parents hear from you without opening an app",
+      "subtitle": "No parent app, no logins. Everything reaches the app they already check all day.",
+      "sample": "Sample conversation",
+      "steps": {
+        "attendance": {
+          "title": "Attendance alert",
+          "body": "Mark the batch in a few taps. The parents of absent students are told within seconds.",
+          "message": "Attendance update from Sharma Classes: Aarav was marked absent on 18 Oct. If this is not correct, please contact the institute."
+        },
+        "fees": {
+          "title": "Fee reminders",
+          "body": "Reminders go out before the due date and after it, one for each stage, never a daily nag.",
+          "message": "Fee reminder from Sharma Classes: ₹3,500 for Aarav is due on 25 Oct. Please pay at the earliest, or ignore this if already paid."
+        },
+        "homework": {
+          "title": "Homework and papers",
+          "body": "Share homework or a practice paper. Parents open the PDF from the link, no login needed.",
+          "message": "New homework from Sharma Classes for Aarav: Light worksheet. Please complete it by 20 Oct. Download the paper here: vargly.in/p/Xk3..."
+        },
+        "ask": {
+          "title": "Parents ask, it answers",
+          "body": "A parent can ask about fees, attendance, marks or homework and get an answer straight away.",
+          "question": "fees?",
+          "answer": "Fee details for Aarav: pending balance ₹3,500. Due date: 25 Oct 2026. Thank you!"
+        }
+      }
+    },
+    "papers": {
+      "eyebrow": "AI Papers",
+      "title": "A question paper in seconds. You decide what stays.",
+      "body": "Tell Vargly the chapter and the kinds of questions you want. Keep, edit or replace any of them, then share the paper with a batch.",
+      "points": {
+        "p1": "English, Hindi or Hinglish, with the PDF in the right script",
+        "p2": "Multiple choice, short, long, true or false, fill in the blanks",
+        "p3": "Answers stay with you; parents get only the questions",
+        "p4": "Shared as homework or a practice paper, from one button"
+      },
+      "mock": {
+        "topic": "Chapter 4: Light, reflection and refraction",
+        "language": "Hindi",
+        "generate": "Generate paper",
+        "selected": "3 of 4 selected · 6 marks",
+        "share": "Share on WhatsApp",
+        "q1": "Which law says the angle of incidence equals the angle of reflection?",
+        "q2": "The speed of light is highest in a vacuum.",
+        "q3": "State two laws of reflection.",
+        "q4": "Define refraction with an example.",
+        "types": {
+          "MCQ": "MCQ",
+          "TF": "True / False",
+          "SHORT": "Short"
+        }
+      }
+    },
+    "faq": {
+      "eyebrow": "Questions",
+      "title": "Things institutes ask us",
+      "items": {
+        "app": {
+          "q": "Do parents need to install an app?",
+          "a": "No. Parents get updates on WhatsApp, which they already use. There is no parent app to download and no login to remember."
+        },
+        "trial": {
+          "q": "How long is the free trial?",
+          "a": "{days} days, and no card is needed. Nothing is deleted when it ends: you choose a plan to carry on from where you stopped."
+        },
+        "private": {
+          "q": "Is my institute's data private?",
+          "a": "Yes. Every institute's data is kept apart from every other's, and the separation is enforced in the database as well as in the app, so one institute can never see another's."
+        },
+        "hindi": {
+          "q": "Does it work in Hindi?",
+          "a": "AI question papers can be written in Hindi, English or Hinglish, and the PDF shows Hindi correctly. The dashboard itself is in English for now."
+        },
+        "fees": {
+          "q": "Does Vargly collect fees from parents?",
+          "a": "No. You record fees as parents pay you, in cash, by UPI or bank, and Vargly keeps the list of who owes what, issues receipts and sends reminders. Online payment in Vargly is only for your own Vargly plan."
+        },
+        "import": {
+          "q": "Can I bring my existing students?",
+          "a": "Yes. Type them in, or import your existing spreadsheet."
+        }
+      }
+    },
+    "cta": {
+      "note": "Takes a few minutes. Your parents will notice the difference by tomorrow."
     }
   },
   "Admin": {
