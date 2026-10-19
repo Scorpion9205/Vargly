@@ -149,6 +149,26 @@ function useMaterials() {
 // ------------------------------------------------------------------ the objects
 
 /** The product's centre: a chat bubble with the "typing" dots */
+/** A softly rounded triangle, thick and bevelled, so the tail reads as part of the bubble */
+function makeTailGeometry(): THREE.ExtrudeGeometry {
+  const shape = new THREE.Shape();
+  shape.moveTo(0.05, 0.1);
+  shape.lineTo(0.95, 0.1);
+  shape.lineTo(0.05, -0.85);
+  shape.closePath();
+  const geometry = new THREE.ExtrudeGeometry(shape, {
+    depth: 0.4,
+    bevelEnabled: true,
+    bevelSize: 0.1,
+    bevelThickness: 0.1,
+    bevelSegments: 6,
+    curveSegments: 12,
+  });
+  geometry.computeVertexNormals();
+  return geometry;
+}
+const tailGeometry = makeTailGeometry();
+
 export function ChatBubble() {
   const m = useMaterials();
   const dots = useRef<THREE.Group>(null);
@@ -163,9 +183,7 @@ export function ChatBubble() {
     <group>
       <RoundedBox args={[2.5, 1.7, 0.95]} radius={0.5} smoothness={8} material={m.orange} />
       {/* the tail */}
-      <mesh position={[-0.85, -1.05, 0]} rotation={[0, 0, Math.PI * 0.78]} material={m.orange}>
-        <coneGeometry args={[0.36, 0.7, 32]} />
-      </mesh>
+      <mesh position={[-1.0, -0.62, -0.3]} geometry={tailGeometry} material={m.orange} />
       <group ref={dots} position={[0, 0.02, 0.5]}>
         {[-0.55, 0, 0.55].map((x) => (
           <mesh key={x} position={[x, 0, 0]} material={m.white}>

@@ -197,8 +197,8 @@ async function main() {
     create: {
       code: PlanCode.PRO_AI,
       name: 'Pro AI Suite',
-      priceMonthly: 1999,
-      priceYearly: 19990,
+      priceMonthly: 699,
+      priceYearly: 6990,
       defaultFeatures: fullFeatures.filter((f) => f !== 'salary'),
       defaultCredits: 500,
       isActive: true,
@@ -211,8 +211,8 @@ async function main() {
     create: {
       code: PlanCode.STARTER,
       name: 'Starter Plan',
-      priceMonthly: 999,
-      priceYearly: 9990,
+      priceMonthly: 299,
+      priceYearly: 2990,
       defaultFeatures: ['core', 'attendance', 'fees', 'reports'],
       defaultCredits: 100,
       isActive: true,

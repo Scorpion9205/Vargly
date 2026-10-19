@@ -802,7 +802,7 @@ model Subscription {
   planId          String             @map("plan_id") @db.Uuid
   status          SubscriptionStatus @default(TRIALING)
   trialStartsAt   DateTime           @default(now()) @map("trial_starts_at") @db.Timestamptz()
-  trialEndsAt     DateTime           @map("trial_ends_at") @db.Timestamptz() // 60 days
+  trialEndsAt     DateTime           @map("trial_ends_at") @db.Timestamptz() // 90 days
   currentPeriodStart DateTime        @default(now()) @map("current_period_start") @db.Timestamptz()
   currentPeriodEnd   DateTime        @map("current_period_end") @db.Timestamptz()
   gracePeriodEndsAt  DateTime?       @map("grace_period_ends_at") @db.Timestamptz()

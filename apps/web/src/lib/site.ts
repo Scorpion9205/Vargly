@@ -8,4 +8,4 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3
 export const CONTACT_EMAIL = 'hello@vargly.in';
 
 /** Length of the free trial every new institute gets (apps/api coaching.service: trialDays) */
-export const TRIAL_DAYS = 60;
+export const TRIAL_DAYS = 90;
