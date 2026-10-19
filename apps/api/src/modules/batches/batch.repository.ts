@@ -13,6 +13,8 @@ export interface IBatchRepository {
     isActive?: boolean;
     academicYear?: string;
     teacherId?: string;
+    /** Only these batches (a teacher's own); an empty list matches nothing */
+    batchIds?: string[];
   }): Promise<any[]>;
   enrollStudent(data: { batchId: string; studentId: string; coachingId: string }): Promise<any>;
   withdrawStudent(batchId: string, studentId: string): Promise<any>;
@@ -100,8 +102,12 @@ export class PrismaBatchRepository implements IBatchRepository {
     isActive?: boolean;
     academicYear?: string;
     teacherId?: string;
+    batchIds?: string[];
   }): Promise<any[]> {
     const where: any = { deletedAt: null };
+    if (filters?.batchIds) {
+      where.id = { in: filters.batchIds };
+    }
     if (filters?.isActive !== undefined) {
       where.isActive = filters.isActive;
     }

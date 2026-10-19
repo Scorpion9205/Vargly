@@ -37,6 +37,16 @@ export const TEACHER: SessionUser = {
   ],
 };
 
+// Vargly's own operator: belongs to no institute (permissions as seeded by create-super-admin.ts)
+export const SUPER_ADMIN: SessionUser = {
+  id: 'admin-1',
+  name: 'Vargly Operator',
+  email: 'ops@vargly.test',
+  phone: '9000000000',
+  roles: ['SUPER_ADMIN'],
+  permissions: ['*'],
+};
+
 export function signInAs(user: SessionUser): Session {
   const session = { user, accessToken: `token-${user.id}`, expiresIn: 900 };
   __setSessionForTests(session);

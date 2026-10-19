@@ -17,6 +17,7 @@ import { AuthMapper } from './auth.mapper.js';
 import { AuthResponseDto, AuthUserDto, LoginDto } from './dto/auth.dto.js';
 import { createUserLoggedInEvent, createUserLoggedOutEvent } from './auth.events.js';
 import { logger } from '../../common/logger/logger.service.js';
+import { permissionResolver } from '../../common/security/permission-resolver.service.js';
 import { EmailAuthMailer, IAuthMailer } from './auth.mailer.js';
 import { IOtpService, otpService as defaultOtpService } from '../../common/security/otp.service.js';
 
@@ -432,6 +433,8 @@ export class AuthService {
     const newHash = await this.passwordService.hash(newPassword);
     await this.userRepository.updatePassword(userId, newHash);
     await this.refreshTokenRepository.revokeAllForUser(userId);
+    // Drop the cached access so the next request sees the new tokens-valid-after moment
+    await permissionResolver.invalidate(userId);
 
     return {
       message: 'Password has been reset successfully. Please log in with your new password.',
@@ -470,6 +473,8 @@ export class AuthService {
 
     await this.userRepository.updatePassword(userId, await this.passwordService.hash(newPassword));
     await this.refreshTokenRepository.revokeAllForUser(userId);
+    // Drop the cached access so the next request sees the new tokens-valid-after moment
+    await permissionResolver.invalidate(userId);
     return { message: 'Password changed. Please sign in again with your new password.' };
   }
 

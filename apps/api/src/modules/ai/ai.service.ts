@@ -65,6 +65,13 @@ export class AiService {
     };
   }
 
+  /** Returns credits taken for a request whose result could not be used (e.g. an unreadable reply) */
+  public async refundCredits(coachingId: string, credits: number): Promise<void> {
+    if (credits <= 0) return;
+    const wallet = await this.repository.createOrGetWallet(coachingId);
+    await this.repository.refundCredits(wallet.id, credits);
+  }
+
   public async generateCompletion(
     dto: GenerateAiCompletionDto,
     coachingId: string,
@@ -119,6 +126,7 @@ export class AiService {
           model: dto.model,
           temperature: dto.temperature,
           maxTokens: dto.maxTokens,
+          jsonMode: dto.jsonMode,
         });
       } catch (providerErr) {
         await this.repository.refundCredits(wallet.id, creditsCost);

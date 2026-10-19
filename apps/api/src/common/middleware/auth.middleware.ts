@@ -42,6 +42,19 @@ export async function authenticateMiddleware(
     );
   }
 
+  // A password change or reset ends the user's earlier sessions, access tokens included. Tokens
+  // from before the millisecond claim existed fall back to their (coarser) iat.
+  if (access.tokensValidAfter !== undefined) {
+    const issuedAtMs = payload.issuedAtMs ?? (payload.iat !== undefined ? payload.iat * 1000 : undefined);
+    if (issuedAtMs === undefined || issuedAtMs < access.tokensValidAfter) {
+      throw new AppError(
+        'INVALID_TOKEN',
+        'This session has ended; please sign in again',
+        StatusCodes.UNAUTHORIZED,
+      );
+    }
+  }
+
   const currentContext = RequestContextService.getContext();
   const authenticatedContext: RequestContextData = {
     traceId: currentContext?.traceId || 'auth-trace',

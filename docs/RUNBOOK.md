@@ -45,30 +45,39 @@ Two database users: `DATABASE_URL` is the application role (`vargly_app`, create
 
 Health: `/health/live` (process up) and `/health/ready` (database and Redis reachable) drive the Kubernetes probes.
 
-## 4. Failed and dead events
+## 4. The operations console (`/app/admin`)
 
-Every domain event is stored in `domain_events` with the handlers that completed. Failed handlers are retried by the worker (30 s, doubling, up to 1 h, 10 attempts), then the event becomes `DEAD`.
+Platform administrators see what needs a person: payments that arrived but were not applied, and events that failed ten times. The console shows the counts, lists both, and lets you retry a dead event or mark a payment resolved (with a note). It is reached only by users with the `SUPER_ADMIN` role; institute owners are refused even though they hold the `*` permission.
+
+**Create the first administrator** (there is no sign-up route for this role). Run `db:seed:rbac` first, then:
+
+```bash
+SUPER_ADMIN_EMAIL=you@example.com SUPER_ADMIN_PASSWORD='at least 12 characters'   pnpm --filter @vargly/api admin:create:dev      # from a built API: admin:create
+```
+
+Use an email no institute owner uses, because sign-in without an institute code refuses an email that matches several accounts. Running the command again resets that administrator's password.
+
+**Alerts.** Every 10 minutes the worker looks for dead events and unresolved review payments and emails `OPS_ALERT_EMAIL` once per distinct set of problems (and again after 24 hours if they are still open). This needs `SMTP_*`. Without `OPS_ALERT_EMAIL` the problem is only logged and shown in the console; the startup log lists it among the integrations. The Prometheus alerts in section 3 still apply.
+
+### Dead events
+
+Every domain event is stored in `domain_events` with the handlers that completed. Failed handlers are retried by the worker (30 s, doubling, up to 1 h, 10 attempts), then the event becomes `DEAD`. Fix the cause (a provider outage, bad credentials), then press **Retry** in the console; only handlers that have not succeeded run again. The same by hand, as the schema owner or with `SELECT set_config('app.rls_bypass','on',true)` in the same transaction:
 
 ```sql
--- What failed and why
 SELECT id, event_name, coaching_id, attempts, last_error, updated_at
 FROM domain_events WHERE status = 'DEAD' ORDER BY updated_at DESC LIMIT 50;
 
--- After fixing the cause: retry now (only handlers that have not succeeded run again)
 UPDATE domain_events SET status = 'FAILED', attempts = 0, next_attempt_at = now()
-WHERE id = '<event id>';
+WHERE id = '<event id>' AND status = 'DEAD';
 ```
 
-Run these as the schema owner or with `SELECT set_config('app.rls_bypass','on',true)` in the same transaction.
+## 5. Payments needing review
 
-## 5. Payments needing reconciliation
+Razorpay is used only for Vargly's own subscriptions and AI-credit packs; institutes record the fees they collect by marking installments paid in the dashboard.
 
-Logged as `RECONCILE` and counted by `vargly_payment_reconcile_total`:
+When the amount paid differs from the order's price, nothing is granted. The payment is kept with the status `NEEDS_REVIEW` and a note saying what was expected and what arrived, is counted by `vargly_payment_reconcile_total` and appears in the console. Look the payment up in Razorpay (the console shows its order and payment ids and the institute's contact details), then either refund it or settle the order by hand, and press **Mark resolved** with a note of what you did. Resolving is recorded (who, when, what) and the payment leaves the queue.
 
-- **Fee payments** (`source="fee"`): Razorpay captured the money but the installment was already paid or waived, or the currency was wrong. Find the payment id in the log, check the student's installments, then refund in Razorpay or apply it to another installment by hand.
-- **Vargly billing** (`source="billing"`, `AMOUNT_MISMATCH`): the amount paid differs from the order's price, so nothing was granted. Compare `billing_payments` (by `gateway_order_id`) with Razorpay, then refund or settle manually.
-
-Webhook retries and duplicate deliveries are safe: each gateway payment is recorded once.
+Webhook retries and duplicate deliveries are safe: each gateway payment is recorded once, and a retry of a flagged payment does not flag it again.
 
 ## 6. Routine operations
 
@@ -77,6 +86,25 @@ Webhook retries and duplicate deliveries are safe: each gateway payment is recor
 - **Scale workers:** increase `vargly-worker` replicas. Jobs, notification sends and the event relay are safe on several replicas.
 - **Upgrade a database created with `prisma db push`** (before migrations existed): `prisma migrate resolve --applied 20260923000000_init`, then deploy migrations as usual.
 
-## 7. Known gaps
+## 7. Paper studio (AI question papers)
 
-Tracked in [AUDIT_AND_REMEDIATION_PLAN.md](AUDIT_AND_REMEDIATION_PLAN.md). Notably: database backups and point-in-time recovery are outside this repository, and fee payments are collected on Vargly's own Razorpay account.
+Teachers generate a question paper with AI at `/app/papers`, keep the questions they want, and share it with a batch: parents (every linked parent) and students get a WhatsApp message with a download link. A teacher can also upload their own PDF and share that.
+
+**AI provider.** Set `GROQ_API_KEY` (free Llama models at console.groq.com, no card); when it is set it is used ahead of Gemini, OpenAI and Claude. The model is `AI_MODEL_GROQ` (default `llama-3.3-70b-versatile`). Without any key, development answers with clearly marked sample questions so the screens can be tried; production refuses instead. Groq's free limits (roughly 30 requests a minute and about 1,000 a day, a daily token cap that varies by model) are **shared by every institute using the key**: check your account's limits page, and move to a paid model through the same two settings when it stops being enough.
+
+**Cost to the institute.** A paper costs 5 AI credits, one question or a small top-up 1. If the model's reply cannot be read twice in a row nothing is charged. Generating needs the plan feature `ai.papers` (the free trial and Pro plans have it; run `db:seed:rbac` after upgrading to add it to existing plans). Sharing a paper of your own needs no AI feature. The permission is `papers:manage` (owners and teachers).
+
+**Links.** Parents open `API_BASE_URL/api/v1/papers/dl/<token>` with no login: the token is 192 random bits, the endpoint is rate limited (60 a minute per address), a paper is rendered on request for the students (never with answers), and the browser is told to download it. Each open is counted for the teacher. Deleting a paper stops its links. The answer key exists only for the teacher (`/papers/:id/pdf?answers=true`). Once a paper is shared it cannot be edited (the link would change under parents); the teacher makes a copy.
+
+**WhatsApp templates to submit in WhatsApp Manager** (category Utility, English, footer "Reply STOP to stop these messages"; the exact text is in `whatsapp-templates.ts`):
+- `homework_with_file`: used when a homework has a file or paper attached (it replaces `homework_assigned` for those).
+- `paper_shared`: a practice or test paper shared without a homework entry.
+Both carry the link as a variable inside the sentence, so no document header is needed. Until they are approved, messages to anyone outside the 24-hour reply window fail. Meta's test number reaches only 5 verified recipients.
+
+**Recipients.** `batch:<id>:contacts` reaches every linked parent and the student's own number, each phone once (the older `:students` token reached only the students' own numbers, which are often empty). The daily per-institute limit (`WHATSAPP_DAILY_LIMIT_PER_COACHING`) applies as for every automatic message.
+
+**PDFs and Hindi.** PDFs are drawn with Noto Sans and Noto Sans Devanagari from `apps/api/assets/fonts` (SIL Open Font License, licences alongside); the Docker image copies that folder. If the fonts are missing, Hindi text will not render and a warning is logged at the first PDF.
+
+## 8. Known gaps
+
+Tracked in [AUDIT_AND_REMEDIATION_PLAN.md](AUDIT_AND_REMEDIATION_PLAN.md). Notably: database backups and point-in-time recovery are outside this repository, and there is no refund automation: refunds are made in the Razorpay dashboard.

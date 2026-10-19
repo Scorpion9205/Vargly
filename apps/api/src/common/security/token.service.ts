@@ -10,6 +10,14 @@ export interface TokenPayload {
   readonly email: string;
   readonly roles: RoleType[];
   readonly permissions: string[];
+  /**
+   * When the token was issued, in milliseconds. The standard iat claim has one-second
+   * resolution, too coarse to tell a token from just before a password change from one signed in
+   * just after it. Set by the token service; absent on tokens issued before this claim existed.
+   */
+  readonly issuedAtMs?: number;
+  /** Standard iat claim (seconds); read by verifyAccessToken only */
+  readonly iat?: number;
 }
 
 export interface ITokenService {
@@ -101,7 +109,7 @@ export class TokenService implements ITokenService {
       audience: 'vargly-clients',
     };
 
-    return jwt.sign(payload, this.privateKey, options);
+    return jwt.sign({ ...payload, issuedAtMs: Date.now() }, this.privateKey, options);
   }
 
   public verifyAccessToken(token: string): TokenPayload {
@@ -118,6 +126,8 @@ export class TokenService implements ITokenService {
       email: decoded.email as string,
       roles: (decoded.roles || []) as RoleType[],
       permissions: (decoded.permissions || []) as string[],
+      issuedAtMs: typeof decoded.issuedAtMs === 'number' ? decoded.issuedAtMs : undefined,
+      iat: decoded.iat,
     };
   }
 

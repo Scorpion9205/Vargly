@@ -3,6 +3,7 @@ import { NotificationService } from './notification.service.js';
 import { ATTENDANCE_EVENTS, AttendanceMarkedPayload } from '../attendance/attendance.events.js';
 import { TEST_EVENTS, TestResultReadyPayload } from '../tests/test.events.js';
 import { HOMEWORK_EVENTS, HomeworkCreatedPayload } from '../homework/homework.events.js';
+import { PAPER_EVENTS, PaperSharedPayload } from '../papers/paper.events.js';
 import { FEE_EVENTS, FeePaidPayload, FeeReminderTriggeredPayload } from '../fees/fee.events.js';
 import { NOTICE_EVENTS, NoticeCreatedPayload } from '../notice-board/notice.events.js';
 import { RISK_EVENTS, RiskDetectedPayload } from '../risk-engine/risk-engine.events.js';
@@ -115,20 +116,24 @@ export class NotificationSubscribers {
     eventBus.subscribe(
       HOMEWORK_EVENTS.HOMEWORK_CREATED,
       async (event: DomainEvent<HomeworkCreatedPayload>) => {
-        const { coachingId, homeworkId, batchId, title, dueDate } = event.payload;
+        const { coachingId, homeworkId, batchId, title, dueDate, attachmentUrl } = event.payload;
         const idempotencyKey = `homework.created.${homeworkId}`;
+        // A paper attached to the homework goes out as a download link in the same message
+        const link = attachmentUrl || undefined;
         const dueDateStr = indiaDate(dueDate);
 
         try {
           await service.enqueueNotification(
             {
               channel: NotificationChannel.WHATSAPP,
-              recipient: `batch:${batchId}:students`,
-              recipientType: 'STUDENT',
-              content: `New homework assigned: "${title}". Due date: ${dueDateStr}.`,
-              templateName: 'homework_assigned',
+              recipient: `batch:${batchId}:contacts`,
+              recipientType: 'PARENT',
+              content: link
+                ? `New homework assigned: "${title}". Due date: ${dueDateStr}. Download: ${link}`
+                : `New homework assigned: "${title}". Due date: ${dueDateStr}.`,
+              templateName: link ? 'homework_with_file' : 'homework_assigned',
               templateLanguage: 'en',
-              templateVariables: { title, dueDate: dueDateStr },
+              templateVariables: link ? { title, dueDate: dueDateStr, link } : { title, dueDate: dueDateStr },
               idempotencyKey,
             },
             coachingId,
@@ -296,6 +301,30 @@ ${content}`
         }
       },
     );
+
+    // 8. Paper shared with a batch -> Queue the download link to its parents. Last on purpose:
+    //    retries find handlers by their registration order, so new ones go at the end.
+    eventBus.subscribe(PAPER_EVENTS.PAPER_SHARED, async (event: DomainEvent<PaperSharedPayload>) => {
+      const { coachingId, shareId, batchId, title, link } = event.payload;
+      try {
+        await service.enqueueNotification(
+          {
+            channel: NotificationChannel.WHATSAPP,
+            recipient: `batch:${batchId}:contacts`,
+            recipientType: 'PARENT',
+            content: `New practice paper: "${title}". Download: ${link}`,
+            templateName: 'paper_shared',
+            templateLanguage: 'en',
+            templateVariables: { title, link },
+            idempotencyKey: `paper.shared.${shareId}`,
+          },
+          coachingId,
+          event.metadata?.correlationId,
+        );
+      } catch (err) {
+        logger.error(`[NotificationSubscribers] Failed enqueuing paper link:`, err);
+      }
+    });
   }
 }
 

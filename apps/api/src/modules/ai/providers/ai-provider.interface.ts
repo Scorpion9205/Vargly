@@ -6,6 +6,8 @@ export interface AiCompletionOptions {
   readonly model?: string;
   readonly temperature?: number;
   readonly maxTokens?: number;
+  /** The reply must be a single JSON object. Providers without such a mode ignore it. */
+  readonly jsonMode?: boolean;
 }
 
 export interface AiCompletionResult {

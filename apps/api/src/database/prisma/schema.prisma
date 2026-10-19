@@ -106,6 +106,7 @@ enum AiProviderType {
   OPENAI
   CLAUDE
   GEMINI
+  GROQ
 
   @@map("ai_provider_type")
 }
@@ -176,6 +177,8 @@ model User {
   lockedUntil     DateTime?      @map("locked_until") @db.Timestamptz()
   lastLoginAt     DateTime?      @map("last_login_at") @db.Timestamptz()
   emailVerifiedAt DateTime?      @map("email_verified_at") @db.Timestamptz()
+  // Access tokens issued before this moment are refused (set when the password changes)
+  tokensValidAfter DateTime?     @map("tokens_valid_after") @db.Timestamptz()
   createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt       DateTime       @updatedAt @map("updated_at") @db.Timestamptz()
   deletedAt       DateTime?      @map("deleted_at") @db.Timestamptz()
@@ -241,7 +244,7 @@ model UserRole {
   id              String           @id @default(uuid()) @db.Uuid
   userId          String           @map("user_id") @db.Uuid
   roleId          String           @map("role_id") @db.Uuid
-  coachingId      String           @map("coaching_id") @db.Uuid
+  coachingId      String?          @map("coaching_id") @db.Uuid // null for SUPER_ADMIN, who belongs to no coaching
   createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz()
 
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -439,6 +442,7 @@ model Batch {
   attendanceSessions AttendanceSession[]
   tests           Test[]
   homeworks       Homework[]
+  paperShares     PaperShare[]
   notices         Notice[]
 
   @@index([coachingId, isActive])
@@ -964,6 +968,7 @@ enum BillingPaymentStatus {
   CREATED
   PAID
   FAILED
+  NEEDS_REVIEW // money was taken but the order was not applied (e.g. wrong amount); a person resolves it
 
   @@map("billing_payment_status")
 }
@@ -984,6 +989,9 @@ model BillingPayment {
   gatewayPaymentId String?              @unique @map("gateway_payment_id") @db.VarChar(100)
   invoiceNumber    String?              @unique @map("invoice_number") @db.VarChar(50)
   paidAt           DateTime?            @map("paid_at") @db.Timestamptz()
+  reviewNote       String?              @map("review_note") @db.Text
+  reviewedAt       DateTime?            @map("reviewed_at") @db.Timestamptz()
+  reviewedBy       String?              @map("reviewed_by") @db.Uuid
   createdBy        String?              @map("created_by") @db.Uuid
   createdAt        DateTime             @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt        DateTime             @updatedAt @map("updated_at") @db.Timestamptz()
@@ -991,6 +999,7 @@ model BillingPayment {
   coaching         Coaching             @relation(fields: [coachingId], references: [id], onDelete: Restrict)
 
   @@index([coachingId, createdAt])
+  @@index([status])
   @@map("billing_payments")
 }
 
@@ -1029,4 +1038,77 @@ model DomainEventRecord {
 
   @@index([status, nextAttemptAt])
   @@map("domain_events")
+}
+
+// ==========================================
+// 13. Paper studio: AI-generated or uploaded question papers shared with a batch's parents
+// ==========================================
+
+enum PaperSource {
+  AI
+  UPLOAD
+
+  @@map("paper_source")
+}
+
+enum PaperStatus {
+  DRAFT
+  PUBLISHED
+
+  @@map("paper_status")
+}
+
+enum PaperShareKind {
+  HOMEWORK // also creates a homework record
+  PRACTICE // a worksheet or test paper: only the link is shared
+
+  @@map("paper_share_kind")
+}
+
+// A teacher's paper. AI papers keep their questions here (with answers, which never reach
+// students); uploaded papers keep the stored file.
+model Paper {
+  id          String      @id @default(uuid()) @db.Uuid
+  coachingId  String      @map("coaching_id") @db.Uuid
+  source      PaperSource
+  status      PaperStatus @default(DRAFT)
+  title       String      @db.VarChar(255)
+  subject     String      @db.VarChar(100)
+  topic       String?     @db.Text
+  language    String      @default("en") @db.VarChar(20)
+  questions   Json        @default("[]")
+  fileUrl     String?     @map("file_url") @db.Text
+  fileKey     String?     @map("file_key") @db.VarChar(500)
+  fileName    String?     @map("file_name") @db.VarChar(255)
+  createdBy   String?     @map("created_by") @db.Uuid
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz()
+  deletedAt   DateTime?   @map("deleted_at") @db.Timestamptz()
+
+  shares      PaperShare[]
+
+  @@index([coachingId, createdBy, updatedAt])
+  @@map("papers")
+}
+
+// One paper sent to one batch. The token in the link is the only credential parents need: they
+// have no login, so it is long and random, and a share can be switched off by deleting it.
+model PaperShare {
+  id           String         @id @default(uuid()) @db.Uuid
+  coachingId   String         @map("coaching_id") @db.Uuid
+  paperId      String         @map("paper_id") @db.Uuid
+  batchId      String         @map("batch_id") @db.Uuid
+  kind         PaperShareKind
+  token        String         @unique @db.VarChar(64)
+  homeworkId   String?        @map("homework_id") @db.Uuid
+  openCount    Int            @default(0) @map("open_count")
+  lastOpenedAt DateTime?      @map("last_opened_at") @db.Timestamptz()
+  createdBy    String?        @map("created_by") @db.Uuid
+  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz()
+
+  paper        Paper          @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  batch        Batch          @relation(fields: [batchId], references: [id], onDelete: Restrict)
+
+  @@index([coachingId, paperId])
+  @@map("paper_shares")
 }

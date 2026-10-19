@@ -21,6 +21,14 @@ export const WHATSAPP_TEMPLATES = {
     params: ['institute', 'student', 'title', 'dueDate'],
     body: 'New homework from {{1}} for {{2}}: {{3}}. Please complete it by {{4}}.',
   },
+  homework_with_file: {
+    params: ['institute', 'student', 'title', 'dueDate', 'link'],
+    body: 'New homework from {{1}} for {{2}}: {{3}}. Please complete it by {{4}}. Download the paper here: {{5}} Thank you.',
+  },
+  paper_shared: {
+    params: ['institute', 'student', 'title', 'link'],
+    body: 'New practice paper from {{1}} for {{2}}: {{3}}. Download it here: {{4}} Thank you.',
+  },
   fee_payment_confirmation: {
     params: ['institute', 'amount', 'student', 'receipt', 'balance'],
     body: 'Payment received by {{1}}: {{2}} for {{3}}. Receipt number {{4}}. Balance due: {{5}}. Thank you.',
@@ -31,7 +39,7 @@ export const WHATSAPP_TEMPLATES = {
   },
   institute_notice: {
     params: ['institute', 'title', 'details'],
-    body: 'Notice from {{1}}: {{2}}. Details: {{3}}',
+    body: 'Notice from {{1}}: {{2}}. Details: {{3}} Thank you.',
   },
   plan_expiry_reminder: {
     params: ['institute', 'status'],

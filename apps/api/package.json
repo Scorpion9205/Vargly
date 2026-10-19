@@ -16,6 +16,8 @@
     "prisma:studio": "prisma studio --schema=src/database/prisma/schema.prisma",
     "db:seed:rbac": "tsx src/database/prisma/init-rbac.ts",
     "kb:reindex": "node dist/scripts/reindex-knowledge.js",
+    "admin:create": "node dist/scripts/create-super-admin.js",
+    "admin:create:dev": "tsx src/scripts/create-super-admin.ts",
     "kb:reindex:dev": "tsx src/scripts/reindex-knowledge.ts",
     "test": "vitest run",
     "test:unit": "vitest run src/test/unit",

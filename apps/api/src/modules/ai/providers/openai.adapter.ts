@@ -8,25 +8,50 @@ import { envConfig } from '../../../config/env.config.js';
 import { logger } from '../../../common/logger/logger.service.js';
 import { MockAiProvider } from './mock-ai.provider.js';
 
+/** What differs between services that speak OpenAI's chat-completions protocol */
+export interface OpenAiCompatibleProfile {
+  readonly providerType: AiProviderType;
+  readonly label: string;
+  /** Name of the environment variable holding the key, for error messages */
+  readonly keyName: string;
+  readonly defaultModel: string;
+}
+
+const OPENAI_PROFILE: OpenAiCompatibleProfile = {
+  providerType: AiProviderType.OPENAI,
+  label: 'OpenAI',
+  keyName: 'OPENAI_API_KEY',
+  defaultModel: envConfig.get('AI_MODEL_OPENAI'),
+};
+
+/**
+ * OpenAI's chat-completions API. Groq and others use the same protocol, so they are this class
+ * with another base URL, key and model (see GroqAiAdapter).
+ */
 export class OpenAiAdapter implements IAiProvider {
-  public readonly providerType: AiProviderType = AiProviderType.OPENAI;
-  private readonly defaultModel = envConfig.get('AI_MODEL_OPENAI');
+  public readonly providerType: AiProviderType;
+  private readonly defaultModel: string;
   private readonly fallbackMock = new MockAiProvider();
 
   public constructor(
     private readonly apiKey: string = (envConfig.get('OPENAI_API_KEY') as string | undefined) || '',
     private readonly baseUrl: string = 'https://api.openai.com/v1',
-  ) {}
+    private readonly profile: OpenAiCompatibleProfile = OPENAI_PROFILE,
+  ) {
+    this.providerType = profile.providerType;
+    this.defaultModel = profile.defaultModel;
+  }
 
   public async generateCompletion(
     options: AiCompletionOptions,
   ): Promise<AiCompletionResult> {
+    const { label, keyName } = this.profile;
     if (!this.apiKey) {
       // A mock answer in production would be shown to parents and charged as credits
       if (envConfig.get('NODE_ENV') === 'production') {
-        throw new Error('OPENAI_API_KEY is not configured');
+        throw new Error(`${keyName} is not configured`);
       }
-      logger.warn('[OpenAiAdapter] OPENAI_API_KEY not configured. Falling back to MockAiProvider');
+      logger.warn(`[OpenAiAdapter] ${keyName} not configured. Falling back to MockAiProvider`);
       return this.fallbackMock.generateCompletion(options);
     }
 
@@ -50,12 +75,14 @@ export class OpenAiAdapter implements IAiProvider {
           messages,
           temperature: options.temperature ?? 0.7,
           max_tokens: options.maxTokens ?? 1000,
+          // The reply is one JSON object (the prompt must say so); no prose around it
+          ...(options.jsonMode ? { response_format: { type: 'json_object' } } : {}),
         }),
       });
 
       if (!response.ok) {
         const errorBody = await response.text();
-        throw new Error(`OpenAI API request failed (${response.status}): ${errorBody}`);
+        throw new Error(`${label} API request failed (${response.status}): ${errorBody}`);
       }
 
       const data = (await response.json()) as any;
@@ -72,7 +99,7 @@ export class OpenAiAdapter implements IAiProvider {
         totalTokens: usage.total_tokens || 0,
       };
     } catch (err) {
-      logger.error('[OpenAiAdapter] Error calling OpenAI API:', err);
+      logger.error(`[OpenAiAdapter] Error calling ${label} API:`, err);
       throw err;
     }
   }

@@ -40,6 +40,8 @@ const envSchema = z.object({
       return /^\d+$/.test(v) ? Number(v) : v;
     }),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+  // Who is emailed when a payment needs review or an event has given up (see /app/admin)
+  OPS_ALERT_EMAIL: z.string().optional(),
   // Bearer token required to read /metrics (disabled in production when unset)
   METRICS_TOKEN: z.string().optional(),
   // Run the queue workers inside the API process too. Default: only in development, so a
@@ -70,11 +72,13 @@ const envSchema = z.object({
   // AI Model Providers
   OPENAI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
+  GROQ_API_KEY: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
   // Model names are configuration, not code: providers retire models on their own schedule.
   AI_MODEL_CLAUDE: z.string().default('claude-sonnet-5'),
   AI_MODEL_OPENAI: z.string().default('gpt-4o-mini'),
   AI_MODEL_GEMINI: z.string().default('gemini-2.5-flash'),
+  AI_MODEL_GROQ: z.string().default('llama-3.3-70b-versatile'),
   OPENAI_EMBEDDING_MODEL: z.string().default('text-embedding-3-small'),
   GEMINI_EMBEDDING_MODEL: z.string().default('gemini-embedding-001'),
   // Object Storage (Cloudinary / Local Mock)

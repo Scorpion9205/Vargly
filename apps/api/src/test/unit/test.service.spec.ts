@@ -8,6 +8,13 @@ import { StudentMarkEntryDto } from '../../modules/tests/dto/test.dto.js';
 
 class InMemoryTestRepository implements ITestRepository {
   public tests: Map<string, any> = new Map();
+  /** Students enrolled per batch; a batch with no entry here enrols everyone */
+  public enrolment: Map<string, string[]> = new Map();
+
+  public async findEnrolledStudentIds(batchId: string, studentIds: string[]): Promise<string[]> {
+    const enrolled = this.enrolment.get(batchId);
+    return enrolled ? studentIds.filter((id) => enrolled.includes(id)) : studentIds;
+  }
 
   public async create(input: CreateTestInput): Promise<any> {
     const test = {
@@ -217,6 +224,44 @@ describe('TestService (Phase 2 Domain Unit Tests)', () => {
         'coaching-1',
       ),
     ).rejects.toThrow(AppError);
+  });
+
+  describe('marks for students outside the test batch', () => {
+    const makeTest = () =>
+      testService.createTest(
+        { batchId: 'batch-101', title: 'Unit test', subject: 'Maths', testDate: '2026-09-20', totalMarks: 100 },
+        'coaching-1',
+      );
+
+    it('refuses marks for a student who is not in the batch, and stores none of the batch', async () => {
+      testRepo.enrolment.set('batch-101', ['stu-1', 'stu-2']);
+      const created = await makeTest();
+
+      await expect(
+        testService.uploadMarks(
+          created.id,
+          { results: [{ studentId: 'stu-1', marksObtained: 70 }, { studentId: 'other-batch-kid', marksObtained: 90 }] },
+          'coaching-1',
+        ),
+      ).rejects.toMatchObject({
+        code: 'STUDENT_NOT_IN_BATCH',
+        statusCode: 400,
+        details: { studentIds: ['other-batch-kid'] },
+      });
+      expect(testRepo.tests.get(created.id).results).toHaveLength(0);
+    });
+
+    it('accepts marks when every student is in the batch, including a repeated entry', async () => {
+      testRepo.enrolment.set('batch-101', ['stu-1', 'stu-2']);
+      const created = await makeTest();
+
+      const updated = await testService.uploadMarks(
+        created.id,
+        { results: [{ studentId: 'stu-1', marksObtained: 70 }, { studentId: 'stu-2', marksObtained: 80 }] },
+        'coaching-1',
+      );
+      expect(updated.results).toHaveLength(2);
+    });
   });
 
   describe('editing, deleting and student reports', () => {

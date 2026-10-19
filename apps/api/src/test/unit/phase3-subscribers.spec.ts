@@ -189,7 +189,7 @@ describe('Phase 3 Cross-Cutting Subscribers Integration', () => {
 
     expect(mockNotificationService.enqueueNotification).toHaveBeenCalledWith(
       expect.objectContaining({
-        recipient: 'batch:batch-9:students',
+        recipient: 'batch:batch-9:contacts',
         content: expect.stringContaining('Trigonometry Worksheet'),
       }),
       'coaching-1',

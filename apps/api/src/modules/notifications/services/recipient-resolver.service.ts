@@ -146,6 +146,7 @@ export class RecipientResolverService {
     if (parts[0] === 'batch' && parts[1]) {
       const students = await this.findStudents(parts[1] === 'all' ? null : parts[1], coachingId);
       if (parts[2] === 'parents') return this.parentsOf(students);
+      if (parts[2] === 'contacts') return this.contactsOf(students);
       if (!parts[2] || parts[2] === 'students') {
         return students.map((student: any) => ({
           recipientId: student.id,
@@ -227,6 +228,49 @@ export class RecipientResolverService {
       where,
       include: { studentParents: { include: { parent: true } } },
     });
+  }
+
+  /**
+   * Everyone reachable for these students: every linked parent and the student's own number,
+   * each phone once even when a parent is linked to several students or shares the student's number.
+   */
+  private contactsOf(students: any[]): ResolvedRecipient[] {
+    const keyOf = (phone: string) => phone.replace(/\D/g, '').slice(-10);
+    const byPhone = new Map<string, ResolvedRecipient>();
+
+    const add = (phone: string | null | undefined, recipient: Omit<ResolvedRecipient, 'phone'>) => {
+      const key = phone ? keyOf(phone) : '';
+      if (!phone || key.length < 10) return;
+      const existing = byPhone.get(key);
+      if (!existing) {
+        byPhone.set(key, { ...recipient, phone });
+      } else if (existing.recipientId === recipient.recipientId && recipient.studentName) {
+        // The same parent, linked to a second child: one message naming both
+        byPhone.set(key, { ...existing, studentName: `${existing.studentName} and ${recipient.studentName}` });
+      }
+    };
+
+    for (const student of students) {
+      for (const link of student.studentParents ?? []) {
+        const parent = link.parent;
+        if (!parent || parent.deletedAt) continue;
+        add(parent.phone, {
+          recipientId: parent.id,
+          email: parent.email || undefined,
+          name: parent.name || 'Parent',
+          recipientType: 'PARENT' as const,
+          studentName: fullName(student),
+        });
+      }
+      add(student.phone, {
+        recipientId: student.id,
+        email: student.email || undefined,
+        name: `${student.firstName} ${student.lastName}`,
+        recipientType: 'STUDENT' as const,
+        studentName: fullName(student),
+      });
+    }
+    return [...byPhone.values()];
   }
 
   /** Each student's primary parent (or first linked), once per parent even with siblings */

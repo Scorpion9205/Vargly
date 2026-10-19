@@ -14,6 +14,8 @@ import {
   Users,
   Wallet,
   Banknote,
+  ShieldCheck,
+  Sparkles,
 } from 'lucide-react';
 
 export type NavKey =
@@ -30,7 +32,9 @@ export type NavKey =
   | 'notices'
   | 'reports'
   | 'settings'
-  | 'billing';
+  | 'billing'
+  | 'admin'
+  | 'papers';
 
 export interface NavItem {
   key: NavKey;
@@ -38,10 +42,12 @@ export interface NavItem {
   icon: LucideIcon;
   /** Shown only to users with this permission (the API enforces it regardless) */
   permission?: string;
+  /** Shown only to users holding this role (the API enforces it regardless) */
+  role?: string;
 }
 
 export interface NavGroup {
-  key: 'overview' | 'academics' | 'money' | 'institute' | 'account';
+  key: 'overview' | 'academics' | 'money' | 'institute' | 'account' | 'platform';
   items: NavItem[];
 }
 
@@ -64,6 +70,7 @@ export const NAV_GROUPS: NavGroup[] = [
       },
       { key: 'tests', href: '/app/tests', icon: ClipboardCheck, permission: 'tests:read' },
       { key: 'homework', href: '/app/homework', icon: BookOpen, permission: 'homework:read' },
+      { key: 'papers', href: '/app/papers', icon: Sparkles, permission: 'papers:manage' },
     ],
   },
   {
@@ -90,15 +97,30 @@ export const NAV_GROUPS: NavGroup[] = [
       { key: 'billing', href: '/app/billing', icon: CreditCard, permission: 'billing:read' },
     ],
   },
+  {
+    key: 'platform',
+    items: [{ key: 'admin', href: '/app/admin', icon: ShieldCheck, role: 'SUPER_ADMIN' }],
+  },
 ];
 
 export const NAV_ITEMS: NavItem[] = NAV_GROUPS.flatMap((group) => group.items);
 
-/** Groups with only the items this user may open; empty groups are dropped */
-export function visibleNav(allowed: (permission: string) => boolean): NavGroup[] {
+/**
+ * Groups with only the items this user may open; empty groups are dropped. Role-gated items
+ * need the role; a platform administrator has no institute, so sees only those items.
+ */
+export function visibleNav(
+  allowed: (permission: string) => boolean,
+  roles: readonly string[] = [],
+): NavGroup[] {
+  const platformOnly = roles.includes('SUPER_ADMIN');
   return NAV_GROUPS.map((group) => ({
     ...group,
-    items: group.items.filter((item) => !item.permission || allowed(item.permission)),
+    items: group.items.filter((item) => {
+      if (item.role) return roles.includes(item.role);
+      if (platformOnly) return false;
+      return !item.permission || allowed(item.permission);
+    }),
   })).filter((group) => group.items.length > 0);
 }
 

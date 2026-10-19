@@ -2,6 +2,7 @@ import { PlanCode, SubscriptionStatus } from '@vargly/types';
 import {
   CreateBillingPaymentInput,
   IBillingRepository,
+  mismatchNote,
   SettlePaymentInput,
   SettlePaymentResult,
 } from '../../modules/billing/billing.repository.js';
@@ -86,7 +87,14 @@ export class InMemoryBillingRepository implements IBillingRepository {
     const payment = this.payments.get(input.gatewayOrderId);
     if (!payment) return { kind: 'not_found' };
     if (payment.status !== 'CREATED') return { kind: 'duplicate', payment };
-    if (payment.amountPaise !== input.amountPaidPaise) return { kind: 'amount_mismatch', payment };
+    if (payment.amountPaise !== input.amountPaidPaise) {
+      Object.assign(payment, {
+        status: 'NEEDS_REVIEW',
+        gatewayPaymentId: input.gatewayPaymentId,
+        reviewNote: mismatchNote(payment.amountPaise, input),
+      });
+      return { kind: 'amount_mismatch', payment };
+    }
 
     this.invoiceCounter++;
     Object.assign(payment, {

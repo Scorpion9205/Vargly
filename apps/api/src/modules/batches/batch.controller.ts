@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { BatchService } from './batch.service.js';
+import { taughtBatchScope } from '../../common/decorators/require-batch-access.decorator.js';
 import {
   createBatchSchema,
   updateBatchSchema,
@@ -51,7 +52,15 @@ export class BatchController {
     const academicYear = req.query.academicYear as string | undefined;
     const teacherId = req.query.teacherId as string | undefined;
 
-    const batches = await this.batchService.listBatches({ isActive, academicYear, teacherId });
+    // Teachers list only the batches they teach, whatever teacherId they ask for
+    const batchIds = await taughtBatchScope();
+
+    const batches = await this.batchService.listBatches({
+      isActive,
+      academicYear,
+      teacherId,
+      ...(batchIds ? { batchIds } : {}),
+    });
     res.status(StatusCodes.OK).json({ data: batches });
   };
 

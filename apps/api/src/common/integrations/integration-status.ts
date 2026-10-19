@@ -10,7 +10,8 @@ export interface IntegrationStatus {
 
 export function getIntegrationStatus(): IntegrationStatus[] {
   const has = (key: Parameters<typeof envConfig.get>[0]) => Boolean(envConfig.get(key));
-  const aiKeys = has('OPENAI_API_KEY') || has('ANTHROPIC_API_KEY') || has('GEMINI_API_KEY');
+  const aiKeys =
+    has('OPENAI_API_KEY') || has('ANTHROPIC_API_KEY') || has('GEMINI_API_KEY') || has('GROQ_API_KEY');
 
   return [
     {
@@ -31,7 +32,12 @@ export function getIntegrationStatus(): IntegrationStatus[] {
     {
       name: 'Payments (Razorpay)',
       configured: has('RAZORPAY_KEY_ID') && has('RAZORPAY_KEY_SECRET') && has('RAZORPAY_WEBHOOK_SECRET'),
-      whenMissing: 'orders and payment links use the mock gateway, whose webhooks are rejected in production',
+      whenMissing: 'subscription orders use the mock gateway, whose webhooks are rejected in production',
+    },
+    {
+      name: 'Operations alerts (OPS_ALERT_EMAIL)',
+      configured: has('OPS_ALERT_EMAIL'),
+      whenMissing: 'dead events and payments needing review are only visible in the admin console and logs',
     },
     {
       name: 'AI completions',

@@ -13,7 +13,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const t = useTranslations('Shell');
   const pathname = usePathname();
   const user = useSession()?.user;
-  const groups = visibleNav((permission) => can(user, permission));
+  const groups = visibleNav((permission) => can(user, permission), user?.roles ?? []);
 
   return (
     <nav aria-label={t('navLabel')} className="flex flex-col gap-6">

@@ -51,12 +51,15 @@ class InMemoryBatchRepository implements IBatchRepository {
     return b;
   }
 
-  public async findMany(_filters?: {
+  public async findMany(filters?: {
     isActive?: boolean;
     academicYear?: string;
     teacherId?: string;
+    batchIds?: string[];
   }): Promise<any[]> {
-    return Array.from(this.batches.values()).filter((b) => !b.deletedAt);
+    return Array.from(this.batches.values()).filter(
+      (b) => !b.deletedAt && (!filters?.batchIds || filters.batchIds.includes(b.id)),
+    );
   }
 
   public async update(id: string, data: any): Promise<any> {
