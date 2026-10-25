@@ -1,2 +1,4 @@
 # False positive: a list of password characters (not a secret), since rewritten so it no longer matches
 2d3f1333a2177c328e288fdea968d415d9abd430:apps/web/src/lib/teachers.ts:generic-api-key:34
+# False positive: the characters a temporary student password is drawn from (not a secret)
+78bd5360b56ab5f46e619f186b6f3c1753f574f7:apps/api/src/common/security/student-login.ts:generic-api-key:44
