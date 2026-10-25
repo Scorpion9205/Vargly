@@ -167,6 +167,9 @@ function HomeworkCard({ homework, batch }: { homework: Homework; batch: Teaching
         <Badge tone={DUE_TONES[status]}>{t(`status.${status}`)}</Badge>
       </div>
       <p className="text-sm whitespace-pre-line break-words">{homework.description}</p>
+      {homework.completedCount ? (
+        <p className="text-sm font-medium text-success">{t('markedDone', { count: homework.completedCount })}</p>
+      ) : null}
       <div className="flex flex-wrap items-center justify-between gap-3">
         {homework.attachmentUrl ? (
           <a

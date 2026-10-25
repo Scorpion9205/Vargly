@@ -95,7 +95,7 @@ describe('CoachingService (Phase 1 Domain Unit Tests)', () => {
     coachingService = new CoachingService(coachingRepo, mockPasswordService, mockEventBus);
   });
 
-  it('should register a coaching institute with a 60-day full-feature trial', async () => {
+  it('should register a coaching institute with a 90-day full-feature trial', async () => {
     const result = await coachingService.registerCoaching({
       coachingName: 'Apex IIT Academy',
       phone: '9876543210',
@@ -112,7 +112,7 @@ describe('CoachingService (Phase 1 Domain Unit Tests)', () => {
     expect(result.code).toBe('apex-iit-academy');
     expect(result.name).toBe('Apex IIT Academy');
     expect(result.subscription.status).toBe(SubscriptionStatus.TRIALING);
-    expect(result.subscription.daysRemaining).toBe(60);
+    expect(result.subscription.daysRemaining).toBe(90);
     expect(result.subscription.features).toContain('ai.parent_report');
     expect(mockPasswordService.hash).toHaveBeenCalledWith('SecurePassword123!');
     expect(mockEventBus.publish).toHaveBeenCalledTimes(1);

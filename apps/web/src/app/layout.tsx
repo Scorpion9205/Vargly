@@ -19,6 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('Metadata');
   return {
     metadataBase: new URL(SITE_URL),
+    icons: { icon: [{ url: '/icon.svg', type: 'image/svg+xml' }] },
     title: { default: t('title'), template: '%s · Vargly' },
     description: t('description'),
     openGraph: {

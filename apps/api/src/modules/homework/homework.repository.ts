@@ -48,6 +48,7 @@ export class PrismaHomeworkRepository implements IHomeworkRepository {
     const rawPrisma = this.prisma as any;
     return rawPrisma.homework.findFirst({
       where: { id, deletedAt: null },
+      include: { _count: { select: { completions: true } } },
     });
   }
 
@@ -56,6 +57,7 @@ export class PrismaHomeworkRepository implements IHomeworkRepository {
     return rawPrisma.homework.findMany({
       where: { batchId, deletedAt: null },
       orderBy: { dueDate: 'desc' },
+      include: { _count: { select: { completions: true } } },
     });
   }
 

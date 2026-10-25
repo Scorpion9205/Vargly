@@ -32,8 +32,9 @@ describe('WhatsApp templates', () => {
         student: 'Riya',
         amount: '₹500',
         institute: 'Sharma Classes',
+        link: 'https://x.test/r/1',
       }),
-    ).toEqual(['Sharma Classes', '₹500', 'Riya', 'R-1', '₹0']);
+    ).toEqual(['Sharma Classes', '₹500', 'Riya', 'R-1', '₹0', 'https://x.test/r/1']);
   });
 
   it('cleans text Meta would reject', () => {
@@ -70,5 +71,16 @@ describe('WhatsApp numbers and STOP', () => {
     expect(optOutCommand('STOP.')).toBe('OPT_OUT');
     expect(optOutCommand('start')).toBe('OPT_IN');
     expect(optOutCommand('please stop the fee reminder')).toBeNull();
+  });
+});
+
+describe('study material template', () => {
+  it('names the title and the link in order, and never starts or ends on a variable', () => {
+    expect(templateParameters('material_shared', { institute: 'Sharma', student: 'Riya', title: 'Light notes', link: 'https://x.test/p/1' })).toEqual([
+      'Sharma',
+      'Riya',
+      'Light notes',
+      'https://x.test/p/1',
+    ]);
   });
 });

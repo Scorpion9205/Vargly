@@ -28,6 +28,10 @@ const envSchema = z.object({
   JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
+  // A ceiling on the whole API a minute, on top of the tighter limits on login, OTP and public pages.
+  // An institute's office shares one address, so the per-address figure is high.
+  API_RATE_LIMIT_IP_PER_MINUTE: z.coerce.number().int().positive().default(600),
+  API_RATE_LIMIT_USER_PER_MINUTE: z.coerce.number().int().positive().default(300),
   // Express "trust proxy": number of proxy hops in front of the API (e.g. 1 behind an ingress),
   // "false" when clients connect directly, or a subnet list. Controls whether X-Forwarded-For
   // is believed when resolving the client IP used for rate limiting and lockout.
@@ -78,7 +82,7 @@ const envSchema = z.object({
   AI_MODEL_CLAUDE: z.string().default('claude-sonnet-5'),
   AI_MODEL_OPENAI: z.string().default('gpt-4o-mini'),
   AI_MODEL_GEMINI: z.string().default('gemini-2.5-flash'),
-  AI_MODEL_GROQ: z.string().default('llama-3.3-70b-versatile'),
+  AI_MODEL_GROQ: z.string().default('openai/gpt-oss-120b'),
   OPENAI_EMBEDDING_MODEL: z.string().default('text-embedding-3-small'),
   GEMINI_EMBEDDING_MODEL: z.string().default('gemini-embedding-001'),
   // Object Storage (Cloudinary / Local Mock)

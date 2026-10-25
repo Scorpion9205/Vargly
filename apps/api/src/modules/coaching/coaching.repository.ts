@@ -169,7 +169,7 @@ export class PrismaCoachingRepository implements ICoachingRepository {
           });
         }
 
-        // 6. Create TRIALING Subscription (60 days full access per ADD §19.2)
+        // 6. Create TRIALING Subscription (90 days full access)
         const trialStartsAt = new Date();
         const trialEndsAt = new Date();
         trialEndsAt.setDate(trialEndsAt.getDate() + input.trialDays);

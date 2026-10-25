@@ -6,6 +6,8 @@ import { createFeeRoutes } from './fee.routes.js';
 import { eventBus } from '../../events/event-bus.js';
 import { FeeSubscribers } from './fee.subscribers.js';
 import { FeeReminderScheduler } from './fee.cron.js';
+import { FeeReceiptService } from './fee-receipt.service.js';
+import { OverdueReminderService } from './fee-overdue-reminder.service.js';
 
 export class FeeModule {
   public static init(): {
@@ -15,7 +17,7 @@ export class FeeModule {
   } {
     const repository = new PrismaFeeRepository();
     const service = new FeeService(repository, eventBus);
-    const controller = new FeeController(service);
+    const controller = new FeeController(service, new FeeReceiptService(), new OverdueReminderService());
     const router = createFeeRoutes(controller);
     const scheduler = new FeeReminderScheduler(repository, eventBus);
 

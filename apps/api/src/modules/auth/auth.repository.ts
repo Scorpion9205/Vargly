@@ -73,6 +73,7 @@ export class PrismaAuthUserRepository implements IAuthUserRepository {
           ...(coachingCode ? { coaching: { code: coachingCode.trim() } } : {}),
         },
         include: {
+          studentProfile: { select: { isActive: true, deletedAt: true } },
           userRoles: {
             include: {
               role: {
@@ -99,6 +100,7 @@ export class PrismaAuthUserRepository implements IAuthUserRepository {
       const user = await (this.prisma as any).user.findFirst({
         where: { id, deletedAt: null },
         include: {
+          studentProfile: { select: { isActive: true, deletedAt: true } },
           userRoles: {
             include: {
               role: {
@@ -133,7 +135,7 @@ export class PrismaAuthUserRepository implements IAuthUserRepository {
       await (this.prisma as any).user.update({
         where: { id: userId },
         // The same update ends the user's earlier access tokens (see PermissionResolver)
-        data: { passwordHash, tokensValidAfter: new Date() },
+        data: { passwordHash, tokensValidAfter: new Date(), mustChangePassword: false },
       });
     });
   }

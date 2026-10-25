@@ -6,7 +6,9 @@
   "Nav": {
     "features": "Features",
     "howItWorks": "How it works",
+    "papers": "AI Papers",
     "pricing": "Pricing",
+    "faq": "FAQ",
     "signIn": "Sign in",
     "startTrial": "Start free trial",
     "openMenu": "Open menu",
@@ -53,6 +55,10 @@
     "academics": {
       "title": "Tests and homework",
       "body": "Enter marks, share results and track homework for every batch."
+    },
+    "papers": {
+      "title": "AI question papers",
+      "body": "Generate a paper in English or Hindi, keep the questions you want, and share it with a batch as a link on WhatsApp."
     },
     "insights": {
       "title": "AI insights",
@@ -134,6 +140,10 @@
     "product": "Product",
     "account": "Account",
     "contact": "Contact",
+    "company": "Vargly",
+    "backToTop": "Back to top",
+    "madeFor": "Made for coaching institutes across India.",
+    "whatsappNote": "Parent updates are sent on WhatsApp.",
     "rights": "© {year} Vargly. All rights reserved."
   },
   "NotFound": {
@@ -153,6 +163,7 @@
     },
     "fields": {
       "email": "Email",
+      "emailOrStudentId": "Email or Student ID",
       "password": "Password",
       "newPassword": "New password",
       "confirmPassword": "Confirm new password",
@@ -173,13 +184,16 @@
     "validation": {
       "required": "This field is required.",
       "email": "Enter a valid email address.",
+      "emailOrStudentId": "Enter your email or Student ID.",
+      "coachingCodeForStudent": "Enter your institute code to sign in with a Student ID.",
       "passwordMin": "Use at least 8 characters.",
       "passwordsMatch": "Passwords do not match.",
       "phone": "Enter a 10-digit mobile number (with country code if outside India).",
       "nameMin": "Enter at least 2 characters."
     },
     "errors": {
-      "INVALID_CREDENTIALS": "Wrong email or password. If your email is used at more than one institute, add the institute code.",
+      "INVALID_CREDENTIALS": "Wrong email, Student ID or password. If your email is used at more than one institute, add the institute code.",
+      "INSTITUTE_CODE_REQUIRED": "Enter your institute code to sign in with a Student ID.",
       "ACCOUNT_LOCKED": "Too many failed attempts. Please wait 15 minutes and try again.",
       "ACCOUNT_INACTIVE": "This account has been deactivated. Contact your institute's administrator.",
       "RATE_LIMITED": "Too many attempts. Please wait a minute and try again.",
@@ -191,6 +205,7 @@
       "rateLimitedFor": "Too many attempts from this network. Please try again in {minutes, plural, one {# minute} other {# minutes}}."
     },
     "login": {
+      "studentHint": "Students: sign in with your Student ID and your institute code. If you forgot your password, ask your institute for a new one.",
       "metaTitle": "Sign in",
       "title": "Welcome back",
       "subtitle": "Sign in to your Vargly account.",
@@ -286,7 +301,14 @@
       "settings": "Settings",
       "billing": "Billing",
       "admin": "Operations",
-      "papers": "AI Papers"
+      "papers": "AI Papers",
+      "enquiries": "Enquiries",
+      "assistant": "WhatsApp assistant",
+      "staffAttendance": "Staff attendance",
+      "surveys": "Parent feedback",
+      "certificates": "Certificates",
+      "exports": "Excel exports",
+      "studentLogins": "Student logins"
     },
     "subscription": {
       "trialEnding": "{days, plural, =0 {Your free trial ends today.} one {Your free trial ends tomorrow.} other {Your free trial ends in # days.}}",
@@ -747,6 +769,7 @@
       "upcoming": "Upcoming"
     },
     "upcoming": "Current",
+    "markedDone": "{count, plural, one {# student has} other {# students have}} marked this as done",
     "past": "Past",
     "attachment": "Attachment",
     "edit": "Edit",
@@ -788,6 +811,11 @@
       "since": "Oldest due {date}",
       "open": "Open fees",
       "remind": "Remind on WhatsApp",
+      "remindAll": "Remind everyone",
+      "remindAllTitle": "Send a reminder to {count, plural, one {# parent} other {# parents}}?",
+      "remindAllBody": "Each parent gets one WhatsApp message for everything their child owes. Sending again today does not message them twice.",
+      "remindAllConfirm": "Send reminders",
+      "remindAllDone": "{count, plural, =0 {Nobody to remind} one {Reminder queued for # parent} other {Reminders queued for # parents}}",
       "noParent": "No parent number",
       "reminder": "Dear {parent}, this is a reminder from {institute} that {amount} in fees for {student} is overdue (due since {date}). Please pay at the earliest. Thank you.",
       "empty": "No overdue fees. Everyone is up to date.",
@@ -1285,6 +1313,584 @@
       "everywhereBody": "You'll be signed out here too, and need your password to sign in again."
     }
   },
+  "Assistant": {
+    "title": "WhatsApp assistant",
+    "subtitle": "Write what parents usually ask about. The assistant answers from this, in your institute's name.",
+    "add": "Add answer",
+    "notIndexed": "The assistant cannot search these answers yet because the server has no embedding key. Your answers are saved and will be picked up once it is set.",
+    "starter": {
+      "title": "Start with what parents ask most",
+      "body": "Tap a topic, replace the example with your own details, and save.",
+      "topics": {
+        "fees": { "title": "Fees", "draft": "Monthly fee for Class 10 is Rs ___ and for Class 12 is Rs ___. The admission fee is Rs ___ and is paid once. Fees are due by the ___ of every month." },
+        "timings": { "title": "Class timings", "draft": "Class 10 batch: Monday to Saturday, ___ am to ___ am. Class 12 batch: Monday to Saturday, ___ pm to ___ pm. We are closed on Sundays." },
+        "admission": { "title": "How to take admission", "draft": "Visit the institute with the student, any day from ___ am to ___ pm. Bring the last marksheet and one photo. A free demo class is available on request." },
+        "holidays": { "title": "Holidays", "draft": "The institute is closed on public holidays and on Sundays. Parents are told about any other holiday on WhatsApp in advance." },
+        "facilities": { "title": "Facilities", "draft": "Our classrooms are air-conditioned. We give printed notes for every chapter, a weekly test, and a monthly parent update on WhatsApp." }
+      }
+    },
+    "type": {
+      "FAQ": "Question and answer",
+      "POLICY": "Rules and policy",
+      "SCHEDULE": "Timings",
+      "SYLLABUS": "Syllabus"
+    },
+    "updatedOn": "Updated {date}",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleted": "Answer deleted",
+    "deleteTitle": "Delete \"{title}\"?",
+    "deleteBody": "The assistant will stop using this answer.",
+    "empty": {
+      "title": "Nothing written yet",
+      "body": "Add fees, timings and admission details so the assistant can answer parents on its own."
+    },
+    "form": {
+      "createTitle": "Add answer",
+      "editTitle": "Edit answer",
+      "title": "Topic",
+      "titleMin": "Enter a topic",
+      "type": "Kind",
+      "content": "What the assistant should know",
+      "contentMin": "Write a little more",
+      "contentMax": "Keep it within {max} characters",
+      "contentCount": "{count} of {max} characters",
+      "contentPlaceholder": "Write it as you would tell a parent",
+      "save": "Save answer",
+      "saved": "Answer saved",
+      "updated": "Answer updated"
+    }
+  },
+  "StudentLogins": {
+    "title": "Student logins",
+    "card": { "title": "Student panel login", "unavailable": "The login status could not be loaded." },
+    "subtitle": "Give students their own login to see attendance, homework, results and notices.",
+    "batchFilter": "Show students of",
+    "allStudents": "All students",
+    "createAll": "Make logins for {count, plural, =0 {everyone} one {# student} other {# students}}",
+    "cancel": "Cancel",
+    "create": "Make login",
+    "reset": "New password",
+    "switchOff": "Switch off",
+    "lastSignIn": "Last signed in {date}",
+    "state": {
+      "none": "No login",
+      "active": "Active",
+      "off": "Switched off"
+    },
+    "empty": {
+      "title": "No students yet",
+      "body": "Add students first, then make their logins here."
+    },
+    "bulk": {
+      "title": "Make logins for {count, plural, one {# student} other {# students}}?",
+      "body": "Each student gets a Student ID and a temporary password. You will see them once and can print cards to hand out.",
+      "confirm": "Make logins"
+    },
+    "off": {
+      "title": "Switch off {name}'s login?",
+      "body": "They are signed out at once and cannot sign in until you give them a new password.",
+      "done": "Login switched off"
+    },
+    "resetConfirm": {
+      "title": "Give {name} a new password?",
+      "body": "Their old password stops working and they are signed out. You will see the new temporary password once."
+    },
+    "issued": {
+      "title": "Logins ready",
+      "description": "Give each student their Student ID and temporary password. They choose their own password when they first sign in.",
+      "once": "The passwords are shown only now. Print the cards before you close this.",
+      "more": "There are more students without a login. Close this and make logins again for the next group.",
+      "none": "Everyone already has a login.",
+      "student": "Student",
+      "studentId": "Student ID",
+      "password": "Temporary password",
+      "cards": "Download login cards (PDF)",
+      "preparing": "Preparing…",
+      "close": "Close"
+    },
+    "switches": {
+      "title": "What students can use",
+      "saved": "Saved",
+      "enabled": "Student panel",
+      "enabledHint": "Students sign in to see their own attendance, homework, results, study material and notices.",
+      "showFees": "Show fees to students",
+      "showFeesHint": "Off by default: fees are usually for parents. When on, students see their instalments and receipts.",
+      "doubts": "AI doubt help",
+      "doubtsHint": "Off by default. When on, students can ask the AI a study doubt; each answer uses one of your AI credits, and a student can ask 20 a day."
+    }
+  },
+  "Student": {
+    "nav": {
+      "home": "Home",
+      "attendance": "Attendance",
+      "homework": "Homework",
+      "results": "Results",
+      "materials": "Study material",
+      "doubts": "Ask a doubt",
+      "notices": "Notices",
+      "timetable": "Timetable",
+      "fees": "Fees",
+      "profile": "Profile",
+      "more": "More"
+    },
+    "shell": {
+      "skip": "Skip to content",
+      "profile": "Profile of {name}",
+      "signOut": "Sign out",
+      "navLabel": "Student panel"
+    },
+    "home": {
+      "greeting": "Hi, {name}",
+      "lowAttendance": "Your attendance is {percent}%, below your institute's {level}%. Try not to miss more classes.",
+      "stats": "At a glance",
+      "attendance": "Attendance",
+      "homeworkOpen": "Homework to do",
+      "average": "Test average",
+      "today": "Today's classes",
+      "timetable": "Timetable",
+      "noClasses": "No classes today.",
+      "homework": "Homework",
+      "seeAll": "See all",
+      "allDone": "Nothing pending. Well done!",
+      "due": {
+        "overdue": "Late: was due {date}",
+        "today": "Due today",
+        "upcoming": "Due {date}"
+      },
+      "latestResult": "Latest result",
+      "absent": "Absent",
+      "standing": "Rank {rank} of {outOf} in the class",
+      "feesDue": "Fees to pay",
+      "nextDue": "Next due {date}",
+      "notices": "Notices"
+    },
+    "attendance": {
+      "title": "Attendance",
+      "subtitle": "Your classes, month by month.",
+      "low": "Your attendance is {percent}%, below your institute's {level}%.",
+      "summary": "Attendance summary",
+      "monthPercent": "This month",
+      "present": "Came",
+      "absent": "Absent",
+      "overall": "Overall",
+      "calendar": "Calendar of the month",
+      "weekday": {
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat",
+        "sun": "Sun"
+      },
+      "dayLabel": "{date}: {status}",
+      "status": {
+        "PRESENT": "Present",
+        "LATE": "Late",
+        "ABSENT": "Absent",
+        "EXCUSED": "Excused"
+      },
+      "none": "No attendance has been marked this month."
+    },
+    "homework": {
+      "title": "Homework",
+      "subtitle": "What your teachers have given you.",
+      "empty": {
+        "title": "No homework",
+        "body": "When a teacher gives homework to your batch, it shows up here."
+      },
+      "todo": "To do ({count})",
+      "allDone": "Nothing pending. Well done!",
+      "doneTitle": "Done ({count})",
+      "undone": "Marked as not done",
+      "marked": "Marked as done",
+      "doneBadge": "Done",
+      "attachment": "Open the file",
+      "markNotDone": "Not done",
+      "markDone": "Mark as done"
+    },
+    "results": {
+      "title": "Results",
+      "subtitle": "Your marks in every test.",
+      "empty": {
+        "title": "No results yet",
+        "body": "Your test marks show up here once your teacher enters them."
+      },
+      "average": "Average score",
+      "testsSat": "{count, plural, one {# test} other {# tests}} taken",
+      "trend": "How your scores have moved",
+      "absent": "Absent",
+      "passed": "Passed",
+      "failed": "Below pass mark",
+      "absentNote": "You were absent for this test.",
+      "standing": "Rank {rank} of {outOf}. Class average {average}%."
+    },
+    "materials": {
+      "title": "Study material",
+      "subtitle": "Notes and papers shared with your batch.",
+      "empty": {
+        "title": "Nothing shared yet",
+        "body": "Notes and practice papers from your teachers show up here."
+      },
+      "kind": {
+        "HOMEWORK": "Homework paper",
+        "PRACTICE": "Practice paper",
+        "MATERIAL": "Notes"
+      },
+      "download": "Download"
+    },
+    "notices": {
+      "title": "Notices",
+      "subtitle": "News from your institute.",
+      "empty": {
+        "title": "No notices",
+        "body": "Announcements from your institute show up here."
+      },
+      "pinned": "Pinned"
+    },
+    "timetable": {
+      "title": "Timetable",
+      "subtitle": "When your classes meet.",
+      "empty": {
+        "title": "No batch yet",
+        "body": "You are not in a batch yet. Ask your institute."
+      },
+      "timeNotSet": "Time not set",
+      "days": "Days of the week",
+      "teachers": "Taught by {names}"
+    },
+    "fees": {
+      "title": "Fees",
+      "subtitle": "What is paid and what is due.",
+      "hidden": {
+        "title": "Not available here",
+        "body": "Your institute shares fee details with your parents. Please ask them or the institute."
+      },
+      "empty": {
+        "title": "No fees recorded",
+        "body": "No fee plan has been set up for you."
+      },
+      "balance": "Still to pay",
+      "overdue": "Overdue",
+      "plan": "Fees for {year}",
+      "instalment": "Instalment {number}",
+      "due": "Due {date}",
+      "paid": "Paid",
+      "overdueBadge": "Overdue: {amount}",
+      "pending": "{amount} to pay",
+      "paidOn": "{amount} paid on {date}",
+      "receipt": "Receipt {number}"
+    },
+    "profile": {
+      "title": "Profile",
+      "theme": "Appearance",
+      "themes": { "light": "Light", "dark": "Dark", "system": "Phone setting" },
+      "name": "Name",
+      "studentId": "Student ID",
+      "roll": "Roll number",
+      "institute": "Institute",
+      "joined": "Joined",
+      "batches": "Batches",
+      "signOut": "Sign out"
+    },
+    "more": {
+      "title": "More",
+      "signOut": "Sign out"
+    },
+    "doubts": {
+      "title": "Ask a doubt",
+      "subtitle": "Stuck on a topic? Write it in English, Hindi or Hinglish and get a step-by-step explanation.",
+      "label": "Your doubt",
+      "placeholder": "For example: Why does ice float on water?",
+      "ask": "Ask",
+      "asking": "Thinking...",
+      "notice": "The AI can make mistakes. If something does not match your book, ask your teacher.",
+      "you": "You asked",
+      "answer": "Answer",
+      "empty": "Your questions and answers from this visit will appear here.",
+      "off": {
+        "title": "Doubt help is not switched on",
+        "body": "Your institute has not turned this on yet. Please ask your teacher."
+      },
+      "tooShort": "Write your doubt in a few words."
+    },
+    "password": {
+      "title": "Change password",
+      "firstTitle": "Choose your own password",
+      "firstBody": "You signed in with a temporary password from your institute. Choose one only you know. You will sign in again with it.",
+      "body": "You will be signed out everywhere and sign in again with the new password.",
+      "temporary": "Temporary password",
+      "current": "Current password",
+      "rules": "At least 8 characters.",
+      "samePassword": "Choose a different password.",
+      "submit": "Save password",
+      "submitting": "Saving…"
+    }
+  },
+  "Enquiries": {
+    "title": "Enquiries",
+    "subtitle": "Note down everyone who asks about fees or timings, then call them back and mark what happened.",
+    "add": "Add enquiry",
+    "shareLink": "Enquiry link and QR",
+    "viewLabel": "Show enquiries",
+    "view": {
+      "all": "All",
+      "due": "Call today",
+      "NEW": "New",
+      "CONTACTED": "Called",
+      "ADMITTED": "Joined",
+      "NOT_INTERESTED": "Not interested"
+    },
+    "search": "Search enquiries",
+    "clearSearch": "Clear search",
+    "searchPlaceholder": "Name or phone",
+    "status": {
+      "NEW": "New",
+      "CONTACTED": "Called",
+      "ADMITTED": "Joined",
+      "NOT_INTERESTED": "Not interested"
+    },
+    "source": {
+      "WALK_IN": "Walked in",
+      "PHONE": "Phone call",
+      "WHATSAPP": "WhatsApp",
+      "REFERRAL": "Referral",
+      "OTHER": "Other",
+      "ONLINE_FORM": "Online form"
+    },
+    "action": {
+      "CONTACTED": "Mark called",
+      "ADMITTED": "Admit as student",
+      "NOT_INTERESTED": "Not interested",
+      "reopen": "Reopen",
+      "viewStudent": "View student"
+    },
+    "marked": {
+      "NEW": "Enquiry reopened",
+      "CONTACTED": "Marked as called",
+      "ADMITTED": "Marked as joined",
+      "NOT_INTERESTED": "Marked as not interested"
+    },
+    "admit": {
+      "title": "Admit as student",
+      "description": "{name} will be added as the parent, and you can put the student in a batch now.",
+      "firstName": "Student's first name",
+      "firstNameRequired": "Enter a first name",
+      "lastName": "Last name",
+      "lastNameRequired": "Enter a last name",
+      "relation": "{name} is the student's",
+      "relations": { "GUARDIAN": "Guardian", "MOTHER": "Mother", "FATHER": "Father" },
+      "batch": "Batch",
+      "noBatch": "No batch yet",
+      "note": "Updates for this student will go to {phone} on WhatsApp.",
+      "submit": "Admit student",
+      "done": "Student admitted"
+    },
+    "share": {
+      "title": "Let parents enquire themselves",
+      "description": "Put this QR code at your gate or share the link. Whatever a parent fills in lands in your Enquiries list, and you get a WhatsApp message.",
+      "copy": "Copy link",
+      "copied": "Link copied",
+      "copyFailed": "Could not copy. Select the link and copy it.",
+      "whatsapp": "Share on WhatsApp",
+      "download": "Download QR",
+      "qrAlt": "QR code that opens your enquiry page",
+      "shareText": "Want to know about our classes, fees or timings? Leave your details here and we will call you back: {link}",
+      "hint": "Print the QR code and stick it at the gate or the reception."
+    },
+    "dueBadge": "Call due",
+    "forStudent": "For {name}",
+    "noDetails": "No other details",
+    "whatsapp": "WhatsApp",
+    "askedOn": "Asked on {date}",
+    "calledOn": "Last called {date}",
+    "followUpOn": "Call on {date}",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleted": "Enquiry deleted",
+    "deleteTitle": "Delete this enquiry?",
+    "deleteBody": "{name}'s enquiry will be removed from the list.",
+    "empty": {
+      "title": "No enquiries yet",
+      "body": "When someone asks about fees or timings, add them here with the day you will call back.",
+      "filtered": "No enquiries match this view."
+    },
+    "form": {
+      "createTitle": "Add enquiry",
+      "editTitle": "Edit enquiry",
+      "name": "Parent or student name",
+      "nameMin": "Enter a name",
+      "phone": "Phone number",
+      "phoneInvalid": "Enter a valid phone number",
+      "studentName": "Student name",
+      "interestedIn": "Interested in",
+      "interestedInHint": "For example Class 10 maths, or JEE batch",
+      "source": "How did they reach you",
+      "followUpOn": "Call back on",
+      "followUpHint": "It shows under Call today from that day",
+      "notes": "Notes",
+      "notesPlaceholder": "What they asked, what fees you told them, what they said",
+      "save": "Save enquiry",
+      "saved": "Enquiry saved",
+      "updated": "Enquiry updated"
+    }
+  },
+  "StaffAttendance": {
+    "title": "Staff attendance",
+    "subtitle": "Mark which teachers came each day, and see what it means for their salary.",
+    "viewLabel": "Choose a view",
+    "view": { "day": "Mark a day", "month": "Month summary" },
+    "date": "Day",
+    "allPresent": "Mark everyone present",
+    "statusFor": "Attendance of {name}",
+    "status": { "PRESENT": "Present", "HALF_DAY": "Half day", "ABSENT": "Absent", "LEAVE": "Paid leave" },
+    "marked": "{done} of {total} marked",
+    "save": "Save attendance",
+    "saving": "Saving…",
+    "saved": "Attendance saved",
+    "empty": { "title": "No teachers yet", "body": "Add teachers first, then mark their attendance here." },
+    "month": {
+      "teacher": "Teacher",
+      "salary": "Monthly salary",
+      "suggested": "Pay for days worked",
+      "note": "Present counts as a full day, a half day as half, and paid leave as a full day. Absence is not paid. This is a suggestion: you decide the amount when you generate the salary."
+    }
+  },
+  "Exports": {
+    "title": "Excel exports",
+    "subtitle": "Download your data as Excel files: student details, attendance, fees, profit and loss, marks, enquiries and staff.",
+    "download": "Download Excel",
+    "preparing": "Preparing…",
+    "downloaded": "File downloaded",
+    "chooseBatch": "Choose a batch",
+    "allBatches": "Every batch",
+    "rangeHint": "Leave the dates empty for everything.",
+    "field": {
+      "students": "Students",
+      "enquiries": "Enquiries",
+      "month": "Month",
+      "batch": "Batch",
+      "batchOptional": "Batch",
+      "from": "From",
+      "to": "Up to",
+      "threshold": "Warning level (%)",
+      "thresholdHint": "Students below this attendance are listed separately."
+    },
+    "studentStatus": { "all": "All students", "active": "Studying now", "inactive": "Left" },
+    "enquiryStatus": { "all": "All", "NEW": "New", "CONTACTED": "Called", "ADMITTED": "Joined", "NOT_INTERESTED": "Not interested" },
+    "kind": {
+      "students": { "title": "Student details", "body": "Every student with phone, address, batches and parents' names and numbers." },
+      "attendance-register": { "title": "Attendance register", "body": "A month of attendance, with a column for each class and the totals. One sheet for each batch." },
+      "attendance-summary": { "title": "Attendance summary", "body": "How often each student came, and who is below the warning level." },
+      "fees": { "title": "Fees report", "body": "What was expected and collected, who has overdue fees, and every payment received." },
+      "profit-loss": { "title": "Profit and loss", "body": "Fees collected against salaries and expenses, with each payment and expense listed." },
+      "tests": { "title": "Test marks", "body": "Marks of every student in every test of a batch." },
+      "enquiries": { "title": "Enquiries", "body": "Everyone who asked about the institute, with how they came and whether they joined." },
+      "staff-attendance": { "title": "Staff attendance", "body": "A month of teacher attendance and the pay for the days worked." }
+    }
+  },
+  "Certificates": {
+    "title": "Certificates",
+    "subtitle": "Make a certificate for a student, ready to print or send.",
+    "searchStudent": "Search students",
+    "clearSearch": "Clear search",
+    "searchPlaceholder": "Student name",
+    "student": "Student",
+    "chooseStudent": "Choose a student",
+    "noStudents": "No students match your search.",
+    "kind": "Kind of certificate",
+    "type": { "ACHIEVEMENT": "Achievement", "COMPLETION": "Course completion", "PARTICIPATION": "Participation" },
+    "reason": "What it is for",
+    "reasonHint": "Leave empty to use a standard line.",
+    "placeholder": {
+      "ACHIEVEMENT": "for securing first rank in the Class 10 maths unit test",
+      "COMPLETION": "has successfully completed the Class 10 maths course",
+      "PARTICIPATION": "for taking part in the annual science exhibition"
+    },
+    "date": "Date",
+    "signedBy": "Signed by",
+    "signedByHint": "Your name or the principal's. Leave empty for no signature.",
+    "preview": "Preview",
+    "download": "Download PDF",
+    "preparing": "Preparing…",
+    "downloaded": "Certificate downloaded",
+    "note": "The PDF is made when you ask for it. Nothing is stored."
+  },
+  "Surveys": {
+    "title": "Parent feedback",
+    "subtitle": "Ask parents how you are doing. They rate you in one tap from a WhatsApp link, and you read the answers here.",
+    "new": "New survey",
+    "everyone": "Every parent",
+    "status": { "open": "Open", "closed": "Closed" },
+    "sentOn": "Sent {date}",
+    "answered": "{answered} of {sent} parents answered ({rate}%)",
+    "average": "Average {value} out of 5",
+    "viewAnswers": "See answers",
+    "close": "Close survey",
+    "closed": "Survey closed",
+    "closeTitle": "Close \"{title}\"?",
+    "closeBody": "Parents who open the link after this will see that the survey has ended. Answers already given stay here.",
+    "empty": { "title": "No surveys yet", "body": "Send a survey once a month. It is the easiest way to learn what parents think before they leave." },
+    "form": {
+      "title": "New survey",
+      "titleLabel": "Name of the survey",
+      "titleHint": "For example October parent feedback",
+      "titleMin": "Enter a name",
+      "question": "Your question",
+      "questionHint": "Leave empty to ask how happy they are with the classes and teaching.",
+      "batch": "Send to",
+      "everyone": "Every parent of the institute",
+      "note": "Each parent gets their own link on WhatsApp and can answer once.",
+      "send": "Send to parents",
+      "sending": "Sending…",
+      "sent": "{count, plural, one {Survey sent to # parent} other {Survey sent to # parents}}"
+    },
+    "detail": {
+      "loading": "Survey",
+      "answeredOf": "{answered} of {sent} parents answered",
+      "average": "average {value} out of 5",
+      "distribution": "Ratings",
+      "stars": "{count, plural, one {# star} other {# stars}}",
+      "noAnswers": "No answers yet."
+    }
+  },
+  "PublicSurvey": {
+    "ratingLabel": "Your rating, from 1 to 5",
+    "stars": "{count, plural, one {# star} other {# stars}}",
+    "low": "Not happy",
+    "high": "Very happy",
+    "comment": "Anything you would like to tell us (optional)",
+    "submit": "Send my rating",
+    "sending": "Sending…",
+    "chooseRating": "Tap a star to give your rating.",
+    "thanksTitle": "Thank you",
+    "thanksBody": "Your feedback has reached the institute.",
+    "closed": "This survey has ended. Thank you for your time.",
+    "unavailable": "We could not load this page right now. Please try again in a moment.",
+    "footer": "Made with Vargly"
+  },
+  "PublicEnquiry": {
+    "title": "Enquire about our classes",
+    "subtitle": "Leave your details and we will call you back with the fees, timings and batches.",
+    "fallbackName": "Enquiry",
+    "name": "Your name",
+    "nameMin": "Enter your name",
+    "phone": "Phone number",
+    "phoneHint": "The number we should call",
+    "phoneInvalid": "Enter a valid phone number",
+    "studentName": "Student's name",
+    "interestedIn": "Class or subject",
+    "interestedInHint": "For example Class 10 maths, or JEE",
+    "message": "Anything you would like to ask",
+    "optional": "optional",
+    "submit": "Send enquiry",
+    "sending": "Sending…",
+    "privacy": "We use your details only to answer this enquiry.",
+    "thanksTitle": "Thank you",
+    "thanksBody": "We have your details and will call you back soon.",
+    "footer": "Made with Vargly"
+  },
   "Papers": {
     "title": "AI Papers",
     "subtitle": "Make question papers with AI, choose the questions you want, and share them with a batch on WhatsApp.",
@@ -1358,7 +1964,8 @@
       "buyCredits": "Buy credits",
       "created": "Paper ready. Choose the questions you want to keep.",
       "shortBy": "Only some of the questions came back usable. You can add more from the paper.",
-      "failed": "The AI could not write the paper this time. Please try again."
+      "failed": "The AI could not write the paper this time. Please try again.",
+      "busy": "The AI is busy right now. Please try again in a minute."
     },
     "editor": {
       "back": "All papers",
@@ -1418,7 +2025,8 @@
       "adding": "Writing questions...",
       "added": "Questions added",
       "shortBy": "Only some of the questions came back usable.",
-      "failed": "The AI could not write more questions. Please try again."
+      "failed": "The AI could not write more questions. Please try again.",
+      "busy": "The AI is busy right now. Please try again in a minute."
     },
     "share": {
       "title": "Share with a batch",
@@ -1430,6 +2038,8 @@
       "homeworkHint": "Creates a homework with a due date.",
       "practice": "Practice paper or test paper",
       "practiceHint": "Just the paper, no homework entry.",
+      "material": "Study material or notes",
+      "materialHint": "Parents get it as notes to study from, with no due date.",
       "dueDate": "Due date",
       "titleLabel": "Name parents will see",
       "answersNote": "Answers are never shared. Parents get only the questions.",
@@ -1456,6 +2066,123 @@
       "notPdf": "Choose a PDF file",
       "tooBig": "The file is larger than 10 MB",
       "created": "PDF uploaded. Share it with a batch."
+    }
+  },
+  "Landing": {
+    "scroll": "Scroll",
+    "heroTrust": {
+      "trial": "{days}-day free trial",
+      "card": "No card needed",
+      "whatsapp": "Updates on WhatsApp"
+    },
+    "floating": {
+      "attendance": "Class 10 · attendance",
+      "attendanceValue": "93% present today",
+      "delivered": "Delivered on WhatsApp",
+      "message": "Aarav was marked absent today.",
+      "fees": "Fees this month",
+      "feesValue": "₹1,84,500",
+      "paper": "AI paper ready",
+      "paperValue": "20 questions · Hindi"
+    },
+    "marquee": {
+      "m1": "Attendance",
+      "m2": "Fees and receipts",
+      "m3": "Homework",
+      "m4": "Tests and results",
+      "m5": "Parent updates on WhatsApp",
+      "m6": "AI question papers",
+      "m7": "Reports",
+      "m8": "Salaries"
+    },
+    "story": {
+      "eyebrow": "On WhatsApp",
+      "title": "Parents hear from you without opening an app",
+      "subtitle": "No parent app, no logins. Everything reaches the app they already check all day.",
+      "sample": "Sample conversation",
+      "steps": {
+        "attendance": {
+          "title": "Attendance alert",
+          "body": "Mark the batch in a few taps. The parents of absent students are told within seconds.",
+          "message": "Attendance update from Sharma Classes: Aarav was marked absent on 18 Oct. If this is not correct, please contact the institute."
+        },
+        "fees": {
+          "title": "Fee reminders",
+          "body": "Reminders go out before the due date and after it, one for each stage, never a daily nag.",
+          "message": "Fee reminder from Sharma Classes: ₹3,500 for Aarav is due on 25 Oct. Please pay at the earliest, or ignore this if already paid."
+        },
+        "homework": {
+          "title": "Homework and papers",
+          "body": "Share homework or a practice paper. Parents open the PDF from the link, no login needed.",
+          "message": "New homework from Sharma Classes for Aarav: Light worksheet. Please complete it by 20 Oct. Download the paper here: vargly.in/p/Xk3..."
+        },
+        "ask": {
+          "title": "Parents ask, it answers",
+          "body": "A parent can ask about fees, attendance, marks or homework and get an answer straight away.",
+          "question": "fees?",
+          "answer": "Fee details for Aarav: pending balance ₹3,500. Due date: 25 Oct 2026. Thank you!"
+        }
+      }
+    },
+    "papers": {
+      "eyebrow": "AI Papers",
+      "title": "A question paper in seconds. You decide what stays.",
+      "body": "Tell Vargly the chapter and the kinds of questions you want. Keep, edit or replace any of them, then share the paper with a batch.",
+      "points": {
+        "p1": "English, Hindi or Hinglish, with the PDF in the right script",
+        "p2": "Multiple choice, short, long, true or false, fill in the blanks",
+        "p3": "Answers stay with you; parents get only the questions",
+        "p4": "Shared as homework or a practice paper, from one button"
+      },
+      "mock": {
+        "topic": "Chapter 4: Light, reflection and refraction",
+        "language": "Hindi",
+        "generate": "Generate paper",
+        "selected": "3 of 4 selected · 6 marks",
+        "share": "Share on WhatsApp",
+        "q1": "Which law says the angle of incidence equals the angle of reflection?",
+        "q2": "The speed of light is highest in a vacuum.",
+        "q3": "State two laws of reflection.",
+        "q4": "Define refraction with an example.",
+        "types": {
+          "MCQ": "MCQ",
+          "TF": "True / False",
+          "SHORT": "Short"
+        }
+      }
+    },
+    "faq": {
+      "eyebrow": "Questions",
+      "title": "Things institutes ask us",
+      "items": {
+        "app": {
+          "q": "Do parents need to install an app?",
+          "a": "No. Parents get updates on WhatsApp, which they already use. There is no parent app to download and no login to remember."
+        },
+        "trial": {
+          "q": "How long is the free trial?",
+          "a": "{days} days, and no card is needed. Nothing is deleted when it ends: you choose a plan to carry on from where you stopped."
+        },
+        "private": {
+          "q": "Is my institute's data private?",
+          "a": "Yes. Every institute's data is kept apart from every other's, and the separation is enforced in the database as well as in the app, so one institute can never see another's."
+        },
+        "hindi": {
+          "q": "Does it work in Hindi?",
+          "a": "AI question papers can be written in Hindi, English or Hinglish, and the PDF shows Hindi correctly. The dashboard itself is in English for now."
+        },
+        "fees": {
+          "q": "Does Vargly collect fees from parents?",
+          "a": "No. You record fees as parents pay you, in cash, by UPI or bank, and Vargly keeps the list of who owes what, issues receipts and sends reminders. Online payment in Vargly is only for your own Vargly plan."
+        },
+        "import": {
+          "q": "Can I bring my existing students?",
+          "a": "Yes. Type them in, or import your existing spreadsheet."
+        }
+      }
+    },
+    "cta": {
+      "note": "Takes a few minutes. Your parents will notice the difference by tomorrow."
     }
   },
   "Admin": {

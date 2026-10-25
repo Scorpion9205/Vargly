@@ -159,6 +159,13 @@ export function useStudentFees(studentId: string, enabled = true) {
   });
 }
 
+/** Sends every parent with overdue fees one WhatsApp reminder; returns how many students were reminded */
+export function useRemindOverdue() {
+  return useMutation({
+    mutationFn: () => api.post<{ students: number }>('/fees/remind-overdue', {}),
+  });
+}
+
 export function useOverdueFees() {
   const scope = useQueryScope();
   return useQuery({

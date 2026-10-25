@@ -8,9 +8,39 @@ import {
 } from './validators/fee.validator.js';
 import { CreateFeePlanDto, RecordFeePaymentDto, WaiveInstallmentDto } from './dto/fee.dto.js';
 import { RequestContextService } from '../../common/services/request-context.service.js';
+import { AppError } from '../../common/middleware/error-handler.middleware.js';
+import { isUuid } from '../../common/validation/is-uuid.js';
+import { FeeReceiptService } from './fee-receipt.service.js';
+import { OverdueReminderService } from './fee-overdue-reminder.service.js';
 
 export class FeeController {
-  public constructor(private readonly feeService: FeeService) {}
+  public constructor(
+    private readonly feeService: FeeService,
+    private readonly receipts?: FeeReceiptService,
+    private readonly overdueReminders?: OverdueReminderService,
+  ) {}
+
+  /** Sends every parent with overdue fees one WhatsApp reminder for what they owe */
+  public remindOverdue = async (_req: Request, res: Response): Promise<void> => {
+    if (!this.overdueReminders) throw new AppError('NOT_AVAILABLE', 'Reminders are not set up', StatusCodes.NOT_IMPLEMENTED);
+    const students = await this.overdueReminders.remindAll(
+      RequestContextService.getRequiredCoachingId(),
+      RequestContextService.getUserId(),
+    );
+    res.status(StatusCodes.OK).json({ data: { students } });
+  };
+
+  /** The receipt a parent opens from WhatsApp: a PDF that downloads */
+  public downloadReceipt = async (req: Request, res: Response): Promise<void> => {
+    const notFound = () => new AppError('LINK_NOT_FOUND', 'This link is not valid any more', StatusCodes.NOT_FOUND);
+    if (!this.receipts || !isUuid(req.params.id) || !/^[A-Za-z0-9_-]{20,64}$/.test(req.params.sig)) throw notFound();
+    const receipt = await this.receipts.renderForLink(req.params.id, req.params.sig);
+    if (!receipt) throw notFound();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${receipt.fileName}"`);
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.status(StatusCodes.OK).send(receipt.pdf);
+  };
 
   public createPlan = async (req: Request, res: Response): Promise<void> => {
     const validated = createFeePlanSchema.parse(req.body) as CreateFeePlanDto;

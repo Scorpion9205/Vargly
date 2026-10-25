@@ -203,6 +203,35 @@ describe('TestService (Phase 2 Domain Unit Tests)', () => {
     );
   });
 
+  it('tells each parent where their child stands once enough students sat the test', async () => {
+    const created = await testService.createTest(
+      { batchId: 'batch-101', title: 'Unit Test', subject: 'Maths', testDate: '2026-09-20', totalMarks: 100 },
+      'coaching-1',
+    );
+    await testService.uploadMarks(
+      created.id,
+      {
+        results: [
+          { studentId: 'stu-1', marksObtained: 80 },
+          { studentId: 'stu-2', marksObtained: 90 },
+          { studentId: 'stu-3', marksObtained: 40 },
+          { studentId: 'stu-4', marksObtained: 0, isAbsent: true },
+        ],
+      },
+      'coaching-1',
+      'teacher-1',
+    );
+
+    const payloadOf = (studentId: string) =>
+      (mockEventBus.publish as any).mock.calls
+        .map((call: any[]) => call[0])
+        .find((e: any) => e.eventName === TEST_EVENTS.TEST_RESULT_READY && e.payload.studentId === studentId)?.payload;
+
+    expect(payloadOf('stu-2')).toMatchObject({ rank: 1, outOf: 3, classAveragePercentage: 70 });
+    expect(payloadOf('stu-3')).toMatchObject({ rank: 3, outOf: 3 });
+    expect(payloadOf('stu-4').rank).toBeUndefined();
+  });
+
   it('should reject marks upload if any mark exceeds totalMarks', async () => {
     const created = await testService.createTest(
       {

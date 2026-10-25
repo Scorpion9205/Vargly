@@ -8,6 +8,8 @@ export interface PaperSharedPayload {
   readonly title: string;
   /** The public download link parents receive */
   readonly link: string;
+  /** A practice paper, or study material such as notes */
+  readonly kind?: 'PRACTICE' | 'MATERIAL';
 }
 
 export const PAPER_EVENTS = {

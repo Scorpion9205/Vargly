@@ -5,8 +5,8 @@ export const recordAuditLogSchema = z.object({
   action: z.string().min(1).max(100),
   entityName: z.string().min(1).max(100),
   entityId: z.string().uuid(),
-  beforeState: z.record(z.unknown()).optional(),
-  afterState: z.record(z.unknown()).optional(),
+  beforeState: z.record(z.string(), z.unknown()).optional(),
+  afterState: z.record(z.string(), z.unknown()).optional(),
   ipAddress: z.string().max(45).optional(),
   userAgent: z.string().optional(),
 });

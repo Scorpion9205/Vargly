@@ -122,6 +122,8 @@ export function GenerateForm() {
               onError: (failure) => {
                 if (isApiError(failure) && failure.code === 'INSUFFICIENT_AI_CREDITS') {
                   setError({ message: t('new.noCredits'), buyCredits: true });
+                } else if (isApiError(failure) && failure.code === 'AI_BUSY') {
+                  setError({ message: t('new.busy') });
                 } else if (isApiError(failure) && failure.code === 'AI_BAD_RESPONSE') {
                   setError({ message: t('new.failed') });
                 } else {

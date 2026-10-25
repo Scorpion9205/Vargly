@@ -1,4 +1,8 @@
 import type { ReactNode } from 'react';
+import { Backdrop } from '@/components/landing/backdrop';
+import { SceneLoader } from '@/components/landing/scene/scene-loader';
+import { Splash } from '@/components/landing/splash';
+import { SmoothScroll } from '@/components/landing/smooth-scroll';
 import { SiteFooter } from '@/components/marketing/site-footer';
 import { SiteHeader } from '@/components/marketing/site-header';
 import { getPublicPlans } from '@/lib/plans.server';
@@ -8,12 +12,20 @@ export default async function MarketingLayout({ children }: Readonly<{ children:
   const showPricing = (await getPublicPlans()).length > 0;
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    // The public site is always dark: the 3D scene and its lighting are built for it. The `dark`
+    // class re-themes everything inside; the signed-in app keeps the user's own theme.
+    <div id="marketing-root" className="dark relative flex min-h-dvh flex-col bg-background text-foreground">
+      <Splash />
+      <SmoothScroll />
+      <Backdrop />
+      <SceneLoader />
       <SiteHeader showPricing={showPricing} />
-      <main id="main" className="flex-1">
+      <main id="main" className="relative z-10 flex-1">
         {children}
       </main>
-      <SiteFooter showPricing={showPricing} />
+      <div className="relative z-10">
+        <SiteFooter showPricing={showPricing} />
+      </div>
     </div>
   );
 }

@@ -29,9 +29,13 @@ export const WHATSAPP_TEMPLATES = {
     params: ['institute', 'student', 'title', 'link'],
     body: 'New practice paper from {{1}} for {{2}}: {{3}}. Download it here: {{4}} Thank you.',
   },
+  material_shared: {
+    params: ['institute', 'student', 'title', 'link'],
+    body: 'New study material from {{1}} for {{2}}: {{3}}. Download it here: {{4}} Thank you.',
+  },
   fee_payment_confirmation: {
-    params: ['institute', 'amount', 'student', 'receipt', 'balance'],
-    body: 'Payment received by {{1}}: {{2}} for {{3}}. Receipt number {{4}}. Balance due: {{5}}. Thank you.',
+    params: ['institute', 'amount', 'student', 'receipt', 'balance', 'link'],
+    body: 'Payment received by {{1}}: {{2}} for {{3}}. Receipt number {{4}}. Balance due: {{5}}. Download your receipt here: {{6}} Thank you.',
   },
   fee_payment_reminder: {
     params: ['institute', 'amount', 'student', 'dueDate'],
@@ -44,6 +48,22 @@ export const WHATSAPP_TEMPLATES = {
   plan_expiry_reminder: {
     params: ['institute', 'status'],
     body: 'Vargly plan update for {{1}}: your plan {{2}}. Choose a plan in Vargly under Billing to keep attendance, fees and parent updates running.',
+  },
+  new_enquiry: {
+    params: ['institute', 'name', 'phone', 'interest'],
+    body: 'New enquiry for {{1}}: {{2}} ({{3}}) asked about {{4}}. Open Vargly under Enquiries to follow up.',
+  },
+  owner_daily_summary: {
+    params: ['institute', 'absent', 'overdue', 'amount', 'calls'],
+    body: 'Daily summary for {{1}}: {{2}} students were absent yesterday, {{3}} fee payments are overdue ({{4}}), and {{5}} enquiries need a call today. Open Vargly for details.',
+  },
+  survey_invite: {
+    params: ['institute', 'title', 'link'],
+    body: 'Feedback request from {{1}}: {{2}}. It takes one minute. Please share your rating here: {{3}} Thank you.',
+  },
+  student_panel_ready: {
+    params: ['institute', 'student', 'link'],
+    body: 'Student panel update from {{1}}: the panel is ready for {{2}}. Attendance, homework and results can be seen here: {{3}} Sign in with the Student ID and password given by the institute.',
   },
   student_risk_alert: {
     params: ['institute', 'student', 'level', 'reason'],

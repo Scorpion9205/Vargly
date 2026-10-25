@@ -1,4 +1,5 @@
 import { StatusCodes } from 'http-status-codes';
+import { classStandings } from './test-ranking.js';
 import { ITestRepository } from './test.repository.js';
 import { IEventBus } from '../../events/event-bus.interface.js';
 import { AppError } from '../../common/middleware/error-handler.middleware.js';
@@ -127,8 +128,19 @@ export class TestService {
       ),
     );
 
+    // Where each student stands among everyone whose marks are in, not only this upload
+    const standings = classStandings(
+      (updatedTest.results ?? []).map((r: any) => ({
+        studentId: r.studentId,
+        marksObtained: Number(r.marksObtained),
+        isAbsent: Boolean(r.isAbsent),
+      })),
+      totalMarks,
+    );
+
     // Emit TestResultReady for each student so subscribers (WhatsApp/Timeline) can notify parents
     for (const result of dto.results) {
+      const standing = standings.get(result.studentId);
       const percentage = totalMarks > 0 ? Math.round((result.marksObtained / totalMarks) * 10000) / 100 : 0;
       await this.eventBus.publish(
         createTestResultReadyEvent(
@@ -141,6 +153,9 @@ export class TestService {
             totalMarks,
             percentage,
             isAbsent: result.isAbsent ?? false,
+            ...(standing
+              ? { rank: standing.rank, outOf: standing.outOf, classAveragePercentage: standing.averagePercentage }
+              : {}),
           },
           correlationId,
           userId,

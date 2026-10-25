@@ -5,15 +5,18 @@ import { PrismaFeeRepository } from '../modules/fees/fee.repository.js';
 import { SubscriptionExpirationScheduler } from '../modules/billing/billing.cron.js';
 import { PrismaBillingRepository } from '../modules/billing/billing.repository.js';
 import { eventBus } from '../events/event-bus.js';
+import { OwnerSummaryService } from '../modules/owner-summary/owner-summary.service.js';
 import { logger } from '../common/logger/logger.service.js';
 import { runJobAsSystem } from './job-context.js';
 
 export const SUBSCRIPTION_SCAN_JOB = 'daily_subscription_scan';
+export const OWNER_SUMMARY_JOB = 'daily_owner_summary';
 
 export class ReminderWorker {
   private worker: Worker | null = null;
   private readonly scheduler: FeeReminderScheduler;
   private readonly subscriptions: SubscriptionExpirationScheduler;
+  private readonly ownerSummary = new OwnerSummaryService();
 
   public constructor(
     scheduler?: FeeReminderScheduler,
@@ -30,7 +33,9 @@ export class ReminderWorker {
     const count =
       job.name === SUBSCRIPTION_SCAN_JOB
         ? await runJobAsSystem(job, () => this.subscriptions.runDailyExpirationCheck())
-        : await runJobAsSystem(job, () => this.scheduler.runDailyReminderCheck());
+        : job.name === OWNER_SUMMARY_JOB
+          ? await runJobAsSystem(job, () => this.ownerSummary.runDaily())
+          : await runJobAsSystem(job, () => this.scheduler.runDailyReminderCheck());
     return { triggeredCount: count };
   }
 
@@ -63,6 +68,16 @@ export class ReminderWorker {
       {
         jobId: SUBSCRIPTION_SCAN_JOB,
         repeat: { pattern: '0 9 * * *', tz: 'Asia/Kolkata' },
+      },
+    );
+
+    // Daily at 8:00 India time: the owner's morning summary on WhatsApp
+    await reminderQueue.add(
+      OWNER_SUMMARY_JOB,
+      {},
+      {
+        jobId: OWNER_SUMMARY_JOB,
+        repeat: { pattern: '0 8 * * *', tz: 'Asia/Kolkata' },
       },
     );
 

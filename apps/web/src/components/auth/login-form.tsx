@@ -11,7 +11,7 @@ import { Alert } from '@/components/ui/alert';
 import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
-import { safeNextPath } from '@/lib/auth/redirect';
+import { homeFor, isStudentIdInput, looksLikeLoginId } from '@/lib/auth/roles';
 import { signIn } from '@/lib/auth/session';
 import { useAuthError } from '@/lib/auth/use-auth-error';
 import { SubmitButton } from './submit-button';
@@ -34,9 +34,15 @@ export function LoginForm({ next, notice, defaultEmail }: LoginFormProps) {
   const schema = useMemo(
     () =>
       z.object({
-        email: z.string().trim().min(1, t('validation.required')).email(t('validation.email')),
+        // An email, or a Student ID (a student has no email of their own)
+        email: z.string().trim().min(1, t('validation.required')).refine(looksLikeLoginId, t('validation.emailOrStudentId')),
         password: z.string().min(1, t('validation.required')),
         coachingCode: z.string().trim(),
+      })
+      // A Student ID is only unique inside one institute
+      .refine((values) => !isStudentIdInput(values.email) || values.coachingCode !== '', {
+        path: ['coachingCode'],
+        message: t('validation.coachingCodeForStudent'),
       }),
     [t],
   );
@@ -55,8 +61,8 @@ export function LoginForm({ next, notice, defaultEmail }: LoginFormProps) {
   const onSubmit = handleSubmit(async ({ email, password, coachingCode }) => {
     setFormError(null);
     try {
-      await signIn({ email, password, coachingCode: coachingCode.toLowerCase() || undefined });
-      router.replace(safeNextPath(next));
+      const session = await signIn({ email, password, coachingCode: coachingCode.toLowerCase() || undefined });
+      router.replace(homeFor(session.user, next));
       router.refresh();
     } catch (error) {
       setFormError(describeError(error, setError, ['email', 'password', 'coachingCode']));
@@ -71,11 +77,12 @@ export function LoginForm({ next, notice, defaultEmail }: LoginFormProps) {
         <Alert tone={notice === 'expired' ? 'info' : 'success'}>{t(`login.${notice}`)}</Alert>
       ) : null}
 
-      <FormField id="email" label={t('fields.email')} error={errors.email?.message}>
+      <FormField id="email" label={t('fields.emailOrStudentId')} error={errors.email?.message}>
         <Input
-          type="email"
+          type="text"
           autoComplete="username"
-          inputMode="email"
+          autoCapitalize="none"
+          spellCheck={false}
           autoFocus
           {...register('email')}
         />
@@ -115,6 +122,8 @@ export function LoginForm({ next, notice, defaultEmail }: LoginFormProps) {
           {...register('coachingCode')}
         />
       </FormField>
+
+      <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">{t('login.studentHint')}</p>
 
       <SubmitButton
         pending={isSubmitting}

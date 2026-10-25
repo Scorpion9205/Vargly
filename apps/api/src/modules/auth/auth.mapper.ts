@@ -9,6 +9,9 @@ export interface UserAggregate {
   phone: string;
   passwordHash: string;
   isActive: boolean;
+  mustChangePassword?: boolean;
+  /** Set for a student's login: the student record it belongs to */
+  studentProfile?: { isActive: boolean; deletedAt: Date | null } | null;
   userRoles: Array<{
     role: {
       code: string;
@@ -40,6 +43,7 @@ export class AuthMapper {
       phone: user.phone,
       roles,
       permissions: Array.from(permissionSet),
+      ...(user.mustChangePassword ? { mustChangePassword: true } : {}),
     };
   }
 }

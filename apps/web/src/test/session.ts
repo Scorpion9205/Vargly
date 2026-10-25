@@ -37,6 +37,17 @@ export const TEACHER: SessionUser = {
   ],
 };
 
+// A student's login: the one portal permission, and the Student ID as its sign-in "email"
+export const STUDENT: SessionUser = {
+  id: 'student-user-1',
+  coachingId: 'c1',
+  name: 'Riya Verma',
+  email: 'riya-4821@students.vargly.local',
+  phone: '',
+  roles: ['STUDENT'],
+  permissions: ['portal:student'],
+};
+
 // Vargly's own operator: belongs to no institute (permissions as seeded by create-super-admin.ts)
 export const SUPER_ADMIN: SessionUser = {
   id: 'admin-1',

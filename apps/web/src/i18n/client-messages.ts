@@ -28,6 +28,18 @@ export const CLIENT_NAMESPACES = [
   'Billing',
   'Admin',
   'Papers',
+  'Enquiries',
+  'Assistant',
+  'PublicEnquiry',
+  'StaffAttendance',
+  'Surveys',
+  'Certificates',
+  'Exports',
+  'Student',
+  'StudentLogins',
+  'PublicSurvey',
+  'Landing',
+  'Footer',
   'Errors',
 ] as const;
 

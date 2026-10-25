@@ -20,6 +20,14 @@ export const notificationSettingsSchema = z
   })
   .strict();
 
+export const studentPortalSettingsSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    showFees: z.boolean().optional(),
+    doubts: z.boolean().optional(),
+  })
+  .strict();
+
 export const updateSettingsSchema = z
   .object({
     branding: brandingConfigSchema.optional(),
@@ -35,6 +43,7 @@ export const updateSettingsSchema = z
       .regex(RECEIPT_PREFIX_PATTERN, 'Use 2 to 10 letters or digits')
       .optional(),
     attendanceThreshold: z.number().min(0).max(100).optional(),
+    studentPortal: studentPortalSettingsSchema.optional(),
   })
   // Unknown keys are refused rather than stored, so the config only holds what is understood
   .strict();

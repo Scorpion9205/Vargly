@@ -266,7 +266,12 @@ describe('StudentFormDialog', () => {
 describe('StudentDetail', () => {
   // The profile also shows test results; those have their own tests
   beforeEach(() => {
-    server.use(http.get(`${API_URL}/tests/student/:id`, () => HttpResponse.json({ data: [] })));
+    server.use(
+      http.get(`${API_URL}/tests/student/:id`, () => HttpResponse.json({ data: [] })),
+      http.get(`${API_URL}/student-logins/:id`, () =>
+        HttpResponse.json({ data: { studentId: 's1', name: 'Aarav Sharma', rollNumber: null, loginId: null, active: false, lastLoginAt: null } }),
+      ),
+    );
   });
 
   const profile = student({
@@ -295,6 +300,20 @@ describe('StudentDetail', () => {
       'href',
       '/app/batches/b1',
     );
+  });
+
+  it('offers an owner a login for the student panel, and does not offer it to a teacher', async () => {
+    server.use(http.get(`${API_URL}/students/s1`, () => HttpResponse.json({ data: profile })));
+    signInAs(OWNER);
+    const owner = renderWithIntl(<StudentDetail id="s1" />);
+    expect(await screen.findByRole('button', { name: 'Make login' })).toBeInTheDocument();
+    expect(screen.getByText('No login')).toBeInTheDocument();
+    owner.unmount();
+
+    signInAs(TEACHER);
+    renderWithIntl(<StudentDetail id="s1" />);
+    await screen.findByRole('heading', { name: 'Aarav Sharma' });
+    expect(screen.queryByRole('button', { name: 'Make login' })).toBeNull();
   });
 
   it('asks before deleting, then returns to the list', async () => {

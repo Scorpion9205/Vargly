@@ -4,7 +4,7 @@ import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Dialog } from 'radix-ui';
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { Logo } from '@/components/brand/logo';
 import { Button } from '@/components/ui/button';
 import { visibleNavLinks } from './nav-links';
@@ -14,6 +14,12 @@ export function MobileNav({ showPricing }: { showPricing: boolean }) {
   const t = useTranslations('Nav');
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
+  // The public site is themed dark by a wrapper, and a portal into <body> would leave it
+  const root = useSyncExternalStore(
+    () => () => undefined,
+    () => document.getElementById('marketing-root'),
+    () => null,
+  );
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -22,11 +28,11 @@ export function MobileNav({ showPricing }: { showPricing: boolean }) {
           <Menu className="size-5!" />
         </Button>
       </Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-foreground/30 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 md:hidden" />
+      <Dialog.Portal container={root ?? undefined}>
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 md:hidden" />
         <Dialog.Content
           aria-describedby={undefined}
-          className="fixed inset-x-0 top-0 z-50 rounded-b-xl bg-background px-4 pt-3 pb-6 shadow-float data-[state=open]:animate-in data-[state=open]:slide-in-from-top-4 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 md:hidden"
+          className="fixed inset-x-0 top-0 z-50 rounded-b-3xl border-b border-white/10 bg-background/95 px-4 pt-3 pb-6 shadow-float backdrop-blur-2xl data-[state=open]:animate-in data-[state=open]:slide-in-from-top-4 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 md:hidden"
         >
           <div className="flex h-10 items-center justify-between">
             <Logo href={null} />

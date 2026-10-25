@@ -7,6 +7,8 @@ export interface SessionUser {
   phone: string;
   roles: string[];
   permissions: string[];
+  /** A temporary password is in use (a new student login): a new one must be chosen first */
+  mustChangePassword?: boolean;
 }
 
 /** What the web server's /api/auth routes return to the browser; the refresh token stays in a cookie */

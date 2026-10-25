@@ -83,6 +83,8 @@ export interface Homework {
   description: string;
   dueDate: string;
   attachmentUrl?: string | null;
+  /** How many students marked it done in the student panel */
+  completedCount?: number;
   createdAt: string;
 }
 

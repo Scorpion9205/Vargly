@@ -59,6 +59,12 @@ export class SettingsService {
           ...dto.branding,
         },
       }),
+      ...(dto.studentPortal && {
+        studentPortal: {
+          ...existing.config.studentPortal,
+          ...dto.studentPortal,
+        },
+      }),
       ...(dto.notifications && {
         notifications: {
           ...existing.config.notifications,

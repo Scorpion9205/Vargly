@@ -12,6 +12,7 @@ import type {
 import type { QuestionGenerator } from '../../modules/papers/question-generator.js';
 import type { Question } from '../../modules/papers/paper.types.js';
 import { InsufficientAiCreditsError } from '../../modules/ai/ai.service.js';
+import { AiProviderError } from '../../modules/ai/providers/ai-provider.interface.js';
 import { MockStorageService } from '../../common/storage/mock-storage.service.js';
 import { PAPER_EVENTS } from '../../modules/papers/paper.events.js';
 
@@ -164,6 +165,16 @@ describe('PaperService', () => {
     });
   });
 
+  it('tells the teacher the AI is busy when the provider\'s free limit is hit, and keeps nothing', async () => {
+    generate.mockRejectedValueOnce(new AiProviderError('Groq API request failed (429): rate limit', 429));
+    await expect(generated()).rejects.toMatchObject({ code: 'AI_BUSY', statusCode: 429 });
+    expect(repo.papers.size).toBe(0);
+
+    // Any other provider failure is still a real fault
+    generate.mockRejectedValueOnce(new AiProviderError('Groq API request failed (500): oops', 500));
+    await expect(generated()).rejects.toMatchObject({ message: expect.stringContaining('(500)') });
+  });
+
   describe('who sees what', () => {
     it('hides a teacher\'s paper from another teacher, but not from the owner', async () => {
       const { paper } = await generated();
@@ -245,6 +256,15 @@ describe('PaperService', () => {
       expect(event.eventName).toBe(PAPER_EVENTS.PAPER_SHARED);
       expect(event.payload).toMatchObject({ batchId: BATCH, title: 'Light worksheet', link: result.link });
       expect((await service.get(paper.id, TEACHER)).status).toBe('PUBLISHED');
+    });
+
+    it('shares study material like a practice paper, and says so in the event so parents get the right message', async () => {
+      const { paper } = await generated();
+      const result = await service.publish(paper.id, { batchId: BATCH, kind: 'MATERIAL', title: 'Light notes' }, COACHING, TEACHER);
+
+      expect(result).toMatchObject({ kind: 'MATERIAL', homeworkId: null });
+      expect(createHomework).not.toHaveBeenCalled();
+      expect(publish.mock.calls[0][0].payload).toMatchObject({ title: 'Light notes', kind: 'MATERIAL', link: result.link });
     });
 
     it('shares as homework: the homework carries the link, and the homework alert is the only message', async () => {

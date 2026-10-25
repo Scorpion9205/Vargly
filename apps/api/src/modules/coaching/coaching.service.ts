@@ -27,7 +27,7 @@ export class CoachingService {
     // 2. Hash owner password with Argon2id
     const ownerPasswordHash = await this.passwordService.hash(dto.ownerPassword);
 
-    // 3. Atomically provision Coaching, Owner User, 60-day full-feature trial, and AI wallet
+    // 3. Atomically provision Coaching, Owner User, 90-day full-feature trial, and AI wallet
     const provision = (code: string) =>
       this.coachingRepository.createWithProvisioning({
         coachingName: dto.coachingName,
@@ -43,7 +43,7 @@ export class CoachingService {
         ownerEmail: dto.ownerEmail,
         ownerPhone: dto.ownerPhone,
         ownerPasswordHash,
-        trialDays: 60, // 60-day trial per ADD §19.2
+        trialDays: 90, // 3 months free, then the plan price applies
         initialCredits: 500, // 500 AI credits trial allotment
       });
     let created;

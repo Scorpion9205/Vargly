@@ -12,6 +12,7 @@ import { getPrismaClient } from './database/prisma/tenant-prisma.extension.js';
 import { assertDatabaseRoleEnforcesRls } from './database/prisma/database-role.check.js';
 import { workerRegistry } from './workers/worker.registry.js';
 import { initModules } from './bootstrap/modules.js';
+import { globalRateLimit } from './common/middleware/global-rate-limit.middleware.js';
 import { reportIntegrationStatus } from './common/integrations/integration-status.js';
 import { registerProcessErrorHandlers } from './common/logger/process-error-handlers.js';
 
@@ -45,6 +46,15 @@ export function createApp(): Express {
 
   // Request Context & Multi-Tenancy
   app.use(tenantContextMiddleware);
+
+  // A ceiling on every API call (per address, and per signed-in person)
+  app.use(
+    '/api/v1',
+    globalRateLimit({
+      perIpPerMinute: envConfig.get('API_RATE_LIMIT_IP_PER_MINUTE'),
+      perUserPerMinute: envConfig.get('API_RATE_LIMIT_USER_PER_MINUTE'),
+    }),
+  );
 
   // Prometheus Metrics Collection
   app.use(metricsMiddleware);
@@ -127,6 +137,16 @@ export function createApp(): Express {
   app.use('/api/v1/import', m.import.router);
   app.use('/api/v1/admin/ops', m.ops.router);
   app.use('/api/v1/papers', m.papers.router);
+  app.use('/api/v1/public/enquiry', m.enquiries.publicRouter);
+  app.use('/api/v1/enquiries', m.enquiries.router);
+  app.use('/api/v1/knowledge', m.knowledge.router);
+  app.use('/api/v1/staff-attendance', m.staffAttendance.router);
+  app.use('/api/v1/public/survey', m.surveys.publicRouter);
+  app.use('/api/v1/surveys', m.surveys.router);
+  app.use('/api/v1/certificates', m.certificates.router);
+  app.use('/api/v1/student-logins', m.studentLogins.router);
+  app.use('/api/v1/student-portal', m.studentPortal.router);
+  app.use('/api/v1/exports', m.exports.router);
 
   // Global Error Handler (must be last)
   app.use(errorHandlerMiddleware);

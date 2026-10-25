@@ -24,6 +24,15 @@ import { WhatsAppAssistantModule } from '../modules/whatsapp-assistant/whatsapp-
 import { RiskEngineModule } from '../modules/risk-engine/risk-engine.module.js';
 import { AiModule } from '../modules/ai/ai.module.js';
 import { OpsModule } from '../modules/ops/ops.module.js';
+import { StudentDoubtService } from '../modules/student-portal/student-doubt.service.js';
+import { StudentPortalModule } from '../modules/student-portal/student-portal.module.js';
+import { StudentLoginModule } from '../modules/student-logins/student-login.module.js';
+import { ExportModule } from '../modules/exports/export.module.js';
+import { CertificateModule } from '../modules/certificates/certificate.module.js';
+import { SurveyModule } from '../modules/surveys/survey.module.js';
+import { StaffAttendanceModule } from '../modules/staff-attendance/staff-attendance.module.js';
+import { KnowledgeModule } from '../modules/knowledge/knowledge.module.js';
+import { EnquiryModule } from '../modules/enquiries/enquiry.module.js';
 import { PaperModule } from '../modules/papers/paper.module.js';
 import { StorageModule } from '../modules/storage/storage.module.js';
 import { workerRegistry } from '../workers/worker.registry.js';
@@ -74,6 +83,14 @@ function createModules() {
   const dashboard = DashboardModule.init();
   const importModule = ImportModule.init();
   const ops = OpsModule.init();
+  const staffAttendance = StaffAttendanceModule.init();
+  const surveys = SurveyModule.init();
+  const certificates = CertificateModule.init();
+  const studentLogins = StudentLoginModule.init();
+  const studentPortal = StudentPortalModule.init({ doubts: new StudentDoubtService(ai.service) });
+  const exportsModule = ExportModule.init({ reports: report.service, staff: staffAttendance.service });
+  const enquiries = EnquiryModule.init({ students: student.service, parents: parent.service, batches: batch.service });
+  const knowledge = KnowledgeModule.init({ knowledgeBaseService: ai.knowledgeBaseService });
   const papers = PaperModule.init({
     aiService: ai.service,
     homeworkService: homework.service,
@@ -109,6 +126,14 @@ function createModules() {
     import: importModule,
     ops,
     papers,
+    enquiries,
+    knowledge,
+    staffAttendance,
+    surveys,
+    certificates,
+    studentLogins,
+    studentPortal,
+    exports: exportsModule,
   };
 }
 

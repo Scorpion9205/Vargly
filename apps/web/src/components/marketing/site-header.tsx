@@ -1,13 +1,14 @@
-import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { Logo } from '@/components/brand/logo';
-import { Button } from '@/components/ui/button';
-import { MobileNav } from './mobile-nav';
+import { HeaderBar } from './header-bar';
 import { visibleNavLinks } from './nav-links';
 
 export async function SiteHeader({ showPricing }: { showPricing: boolean }) {
   const t = await getTranslations('Nav');
-  const links = visibleNavLinks(showPricing);
+  const links = visibleNavLinks(showPricing).map((link) => ({
+    key: link.key,
+    href: link.href,
+    label: t(link.key),
+  }));
 
   return (
     <>
@@ -17,37 +18,7 @@ export async function SiteHeader({ showPricing }: { showPricing: boolean }) {
       >
         {t('skip')}
       </a>
-      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 md:h-20 lg:px-8">
-          <Logo className="text-2xl" />
-
-          <nav aria-label={t('main')} className="hidden md:block">
-            <ul className="flex items-center gap-1 lg:gap-2">
-              {links.map((link) => (
-                <li key={link.key}>
-                  <Link
-                    href={link.href}
-                    className="rounded-full px-4 py-2.5 text-[15px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground lg:text-base"
-                  >
-                    {t(link.key)}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          <div className="hidden items-center gap-2 md:flex">
-            <Button asChild variant="ghost" className="text-[15px]">
-              <Link href="/login">{t('signIn')}</Link>
-            </Button>
-            <Button asChild className="text-[15px]">
-              <Link href="/signup">{t('startTrial')}</Link>
-            </Button>
-          </div>
-
-          <MobileNav showPricing={showPricing} />
-        </div>
-      </header>
+      <HeaderBar links={links} showPricing={showPricing} signIn={t('signIn')} startTrial={t('startTrial')} />
     </>
   );
 }

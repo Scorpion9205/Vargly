@@ -8,8 +8,8 @@ export async function Pricing({ plans }: { plans: PublicPlan[] }) {
   const t = await getTranslations('Pricing');
 
   return (
-    <section id="pricing" aria-labelledby="pricing-title" className="bg-muted/60">
-      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
+    <section id="pricing" data-stop="pricing" aria-labelledby="pricing-title">
+      <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
         <SectionHeading
           id="pricing-title"
           eyebrow={t('eyebrow')}

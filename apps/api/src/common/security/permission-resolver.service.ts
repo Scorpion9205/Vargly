@@ -13,6 +13,8 @@ export interface ResolvedAccess {
   readonly permissions: string[];
   /** Access tokens issued before this moment (milliseconds since the epoch) are refused */
   readonly tokensValidAfter?: number;
+  /** A temporary password is in use: only the sign-in and password routes work until it is replaced */
+  readonly mustChangePassword?: boolean;
 }
 
 export interface IAccessCacheInvalidator {
@@ -83,6 +85,7 @@ export class PermissionResolver implements IAccessCacheInvalidator {
       where: { id: userId, isActive: true, ...(coachingId ? {} : { coachingId: null }) },
       include: {
         teacherProfile: { select: { isActive: true, deletedAt: true } },
+        studentProfile: { select: { isActive: true, deletedAt: true } },
         userRoles: {
           include: { role: { include: { rolePermissions: { include: { permission: true } } } } },
         },
@@ -93,6 +96,9 @@ export class PermissionResolver implements IAccessCacheInvalidator {
     const teacherInactive =
       !!user.teacherProfile &&
       (!user.teacherProfile.isActive || user.teacherProfile.deletedAt !== null);
+
+    // A student who has left keeps the record but not the login
+    if (user.studentProfile && (!user.studentProfile.isActive || user.studentProfile.deletedAt !== null)) return null;
 
     const roles = new Set<RoleType>();
     const permissions = new Set<string>();
@@ -109,6 +115,7 @@ export class PermissionResolver implements IAccessCacheInvalidator {
       roles: [...roles],
       permissions: [...permissions],
       ...(user.tokensValidAfter ? { tokensValidAfter: new Date(user.tokensValidAfter).getTime() } : {}),
+      ...(user.mustChangePassword ? { mustChangePassword: true } : {}),
     };
   }
 

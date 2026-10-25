@@ -56,8 +56,19 @@ const ALL_PERMISSIONS = [
   { code: 'audit:read', module: 'audit', action: 'read', description: 'View audit trail' },
   { code: 'ai:manage_credits', module: 'ai', action: 'manage_credits', description: 'Top up AI credit wallet' },
   { code: 'papers:manage', module: 'papers', action: 'manage', description: 'Generate, upload and share question papers' },
+  { code: 'enquiries:manage', module: 'enquiries', action: 'manage', description: 'Record and follow up admission enquiries' },
+  { code: 'knowledge:manage', module: 'knowledge', action: 'manage', description: 'Write what the WhatsApp assistant tells parents' },
+  { code: 'staff_attendance:manage', module: 'staff_attendance', action: 'manage', description: 'Mark teacher attendance and see what it means for salary' },
+  { code: 'surveys:manage', module: 'surveys', action: 'manage', description: 'Send feedback surveys to parents and read the answers' },
+  { code: 'certificates:manage', module: 'certificates', action: 'manage', description: 'Make certificates for students' },
+  { code: 'exports:read', module: 'exports', action: 'read', description: 'Download student, attendance, fee and other data as Excel' },
+  { code: 'portal:student', module: 'portal', action: 'student', description: 'Use the student panel: own attendance, homework, results and notices' },
+  { code: 'student_logins:manage', module: 'student_logins', action: 'manage', description: 'Create, reset and switch off student logins' },
   { code: 'ai:view_logs', module: 'ai', action: 'view_logs', description: 'View AI usage ledger' },
 ];
+
+/** A student gets exactly one permission: the portal. Every staff route needs a different one. */
+const STUDENT_PERMISSION_CODES = ['portal:student'];
 
 const TEACHER_PERMISSION_CODES = [
   'students:read',
@@ -119,6 +130,20 @@ async function main() {
     });
   }
 
+  let studentRole = await prisma.role.findFirst({
+    where: { code: RoleType.STUDENT, coachingId: null },
+  });
+  if (!studentRole) {
+    studentRole = await prisma.role.create({
+      data: {
+        name: 'Student',
+        code: RoleType.STUDENT,
+        description: 'A student signed in to the student panel: sees only their own records',
+        isSystem: true,
+      },
+    });
+  }
+
   // 3. Map Permissions to OWNER (Wildcard & all individual permissions)
   const dbPermissions = await prisma.permission.findMany();
   for (const p of dbPermissions) {
@@ -134,6 +159,15 @@ async function main() {
         roleId: ownerRole.id,
         permissionId: p.id,
       },
+    });
+  }
+
+  // 3b. Map the portal permission to STUDENT, and nothing else
+  for (const p of dbPermissions.filter((perm: any) => STUDENT_PERMISSION_CODES.includes(perm.code))) {
+    await prisma.rolePermission.upsert({
+      where: { roleId_permissionId: { roleId: studentRole.id, permissionId: p.id } },
+      update: {},
+      create: { roleId: studentRole.id, permissionId: p.id },
     });
   }
 
@@ -171,6 +205,7 @@ async function main() {
     'ai.insights',
     'ai.risk_engine',
     'ai.papers',
+    'ai.doubts',
     'whatsapp.assistant',
   ];
 
@@ -196,8 +231,8 @@ async function main() {
     create: {
       code: PlanCode.PRO_AI,
       name: 'Pro AI Suite',
-      priceMonthly: 1999,
-      priceYearly: 19990,
+      priceMonthly: 699,
+      priceYearly: 6990,
       defaultFeatures: fullFeatures.filter((f) => f !== 'salary'),
       defaultCredits: 500,
       isActive: true,
@@ -210,8 +245,8 @@ async function main() {
     create: {
       code: PlanCode.STARTER,
       name: 'Starter Plan',
-      priceMonthly: 999,
-      priceYearly: 9990,
+      priceMonthly: 299,
+      priceYearly: 2990,
       defaultFeatures: ['core', 'attendance', 'fees', 'reports'],
       defaultCredits: 100,
       isActive: true,

@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { type ReactNode, useState } from 'react';
 import { QueryError } from '@/components/dashboard/query-error';
+import { StudentLoginCard } from '@/components/student-logins/student-login-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -110,6 +111,7 @@ function StudentProfile({ student, back }: { student: Student; back: ReactNode }
   const canManageBatches = can(user, 'batches:update');
   const canSeeResults = can(user, 'tests:read');
   const canSeeFees = can(user, 'fees:read');
+  const canManageLogin = can(user, 'student_logins:manage') && student.isActive;
 
   const toggleActive = async () => {
     try {
@@ -262,6 +264,8 @@ function StudentProfile({ student, back }: { student: Student; back: ReactNode }
               )}
             </CardContent>
           </Card>
+
+          {canManageLogin ? <StudentLoginCard studentId={student.id} /> : null}
 
           <Card>
             <CardHeader className="flex-row items-center justify-between">

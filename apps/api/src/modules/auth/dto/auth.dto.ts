@@ -25,6 +25,8 @@ export interface AuthUserDto {
   readonly phone: string;
   readonly roles: RoleType[];
   readonly permissions: string[];
+  /** A temporary password is in use: the person must choose their own before anything else */
+  readonly mustChangePassword?: boolean;
 }
 
 export interface AuthResponseDto {
