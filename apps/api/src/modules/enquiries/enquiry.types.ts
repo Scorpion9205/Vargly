@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const ENQUIRY_SOURCES = ['WALK_IN', 'PHONE', 'WHATSAPP', 'REFERRAL', 'OTHER'] as const;
+export const ENQUIRY_SOURCES = ['WALK_IN', 'PHONE', 'WHATSAPP', 'REFERRAL', 'OTHER', 'ONLINE_FORM'] as const;
 export const ENQUIRY_STATUSES = ['NEW', 'CONTACTED', 'ADMITTED', 'NOT_INTERESTED'] as const;
 export type EnquirySourceType = (typeof ENQUIRY_SOURCES)[number];
 export type EnquiryStatusType = (typeof ENQUIRY_STATUSES)[number];
@@ -46,6 +46,28 @@ export const updateEnquirySchema = z
   .refine((value) => Object.keys(value).length > 0, 'Nothing to update');
 export type UpdateEnquiryDto = z.infer<typeof updateEnquirySchema>;
 
+/** What a parent fills in on the institute's public enquiry page */
+export const publicEnquirySchema = z.object({
+  name: z.string().trim().min(2).max(120),
+  phone,
+  studentName: optionalText(120).optional(),
+  interestedIn: optionalText(200).optional(),
+  message: optionalText(500).optional(),
+  /** A field real visitors never see: bots fill it in */
+  website: z.string().max(200).optional(),
+});
+export type PublicEnquiryDto = z.infer<typeof publicEnquirySchema>;
+
+export const admitEnquirySchema = z.object({
+  firstName: z.string().trim().min(1).max(100),
+  lastName: z.string().trim().min(1).max(100),
+  /** The batch to put the new student in; optional, they can be added to one later */
+  batchId: z.string().uuid().optional(),
+  /** Who the person who enquired is to the student */
+  relation: z.enum(['FATHER', 'MOTHER', 'GUARDIAN']).default('GUARDIAN'),
+});
+export type AdmitEnquiryDto = z.infer<typeof admitEnquirySchema>;
+
 export const listEnquirySchema = z.object({
   status: z.enum(ENQUIRY_STATUSES).optional(),
   /** Only enquiries still open (new or contacted) whose follow-up day has come */
@@ -68,6 +90,7 @@ export interface EnquiryRecord {
   /** YYYY-MM-DD */
   readonly followUpOn: string | null;
   readonly lastContactedAt: Date | null;
+  readonly studentId: string | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }

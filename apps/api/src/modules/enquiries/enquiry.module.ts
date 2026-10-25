@@ -1,12 +1,13 @@
 import { Router } from 'express';
 import { PrismaEnquiryRepository } from './enquiry.repository.js';
-import { EnquiryService } from './enquiry.service.js';
+import { AdmissionDeps, EnquiryService } from './enquiry.service.js';
 import { EnquiryController } from './enquiry.controller.js';
-import { createEnquiryRoutes } from './enquiry.routes.js';
+import { createEnquiryRoutes, createPublicEnquiryRoutes } from './enquiry.routes.js';
 
 export class EnquiryModule {
-  public static init(): { router: Router; service: EnquiryService } {
-    const service = new EnquiryService(new PrismaEnquiryRepository());
-    return { router: createEnquiryRoutes(new EnquiryController(service)), service };
+  public static init(deps?: AdmissionDeps): { router: Router; publicRouter: Router; service: EnquiryService } {
+    const service = new EnquiryService(new PrismaEnquiryRepository(), deps);
+    const controller = new EnquiryController(service);
+    return { router: createEnquiryRoutes(controller), publicRouter: createPublicEnquiryRoutes(controller), service };
   }
 }

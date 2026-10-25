@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/toaster';
 import {
   ENQUIRY_SOURCES,
+  MANUAL_SOURCES,
   type Enquiry,
   type EnquiryInput,
   useCreateEnquiry,
@@ -142,7 +143,8 @@ function EnquiryForm({ enquiry, onDone }: { enquiry?: Enquiry; onDone: () => voi
         </FormField>
         <FormField id="enquiry-source" label={t('form.source')} error={errors.source?.message}>
           <Select {...register('source')}>
-            {ENQUIRY_SOURCES.map((value) => (
+            {/* An enquiry that came from the public page keeps its source when edited */}
+            {(enquiry?.source === 'ONLINE_FORM' ? ENQUIRY_SOURCES : MANUAL_SOURCES).map((value) => (
               <option key={value} value={value}>
                 {t(`source.${value}`)}
               </option>

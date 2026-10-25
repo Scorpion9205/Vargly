@@ -179,6 +179,8 @@ model User {
   emailVerifiedAt DateTime?      @map("email_verified_at") @db.Timestamptz()
   // Access tokens issued before this moment are refused (set when the password changes)
   tokensValidAfter DateTime?     @map("tokens_valid_after") @db.Timestamptz()
+  // A temporary password was given out (a new student login): the person must choose their own first
+  mustChangePassword Boolean     @default(false) @map("must_change_password")
   createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt       DateTime       @updatedAt @map("updated_at") @db.Timestamptz()
   deletedAt       DateTime?      @map("deleted_at") @db.Timestamptz()
@@ -190,6 +192,7 @@ model User {
   refreshTokens   RefreshToken[]
   actionTokens    AuthActionToken[]
   teacherProfile  Teacher?
+  studentProfile  Student?
 
   @@unique([coachingId, email])
   @@index([coachingId, phone])
@@ -345,6 +348,10 @@ model Student {
   feePlans        FeePlan[]
   timelineEntries StudentTimeline[]
   riskScore       RiskScore?
+  homeworkCompletions HomeworkCompletion[]
+  // The student's own login, when the institute has made one
+  userId          String?          @unique @map("user_id") @db.Uuid
+  user            User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([coachingId, rollNumber])
   @@index([coachingId, phone])
@@ -577,6 +584,7 @@ model Homework {
   updatedBy       String?          @map("updated_by") @db.Uuid
 
   batch           Batch            @relation(fields: [batchId], references: [id], onDelete: Restrict)
+  completions     HomeworkCompletion[]
 
   @@index([coachingId, batchId, dueDate])
   @@map("homework")
@@ -1061,6 +1069,7 @@ enum PaperStatus {
 enum PaperShareKind {
   HOMEWORK // also creates a homework record
   PRACTICE // a worksheet or test paper: only the link is shared
+  MATERIAL // notes or study material: only the link is shared
 
   @@map("paper_share_kind")
 }
@@ -1123,6 +1132,7 @@ enum EnquirySource {
   WHATSAPP
   REFERRAL
   OTHER
+  ONLINE_FORM
 
   @@map("enquiry_source")
 }
@@ -1148,6 +1158,8 @@ model Enquiry {
   notes           String?       @db.Text
   followUpOn      DateTime?     @map("follow_up_on") @db.Date
   lastContactedAt DateTime?     @map("last_contacted_at") @db.Timestamptz()
+  // The student this enquiry became, once admitted
+  studentId       String?       @map("student_id") @db.Uuid
   createdBy       String?       @map("created_by") @db.Uuid
   createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz()
@@ -1156,4 +1168,93 @@ model Enquiry {
   @@index([coachingId, status, followUpOn])
   @@index([coachingId, createdAt])
   @@map("enquiries")
+}
+
+// ---------------------------------------------------------------------------
+// 15. Staff attendance: which teachers came on which day, and what it means for their pay
+// ---------------------------------------------------------------------------
+
+enum StaffAttendanceStatus {
+  PRESENT
+  HALF_DAY
+  ABSENT
+  LEAVE
+
+  @@map("staff_attendance_status")
+}
+
+model StaffAttendance {
+  id         String                @id @default(uuid()) @db.Uuid
+  coachingId String                @map("coaching_id") @db.Uuid
+  teacherId  String                @map("teacher_id") @db.Uuid
+  date       DateTime              @db.Date
+  status     StaffAttendanceStatus
+  note       String?               @db.VarChar(255)
+  markedBy   String?               @map("marked_by") @db.Uuid
+  createdAt  DateTime              @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt  DateTime              @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@unique([teacherId, date])
+  @@index([coachingId, date])
+  @@map("staff_attendance")
+}
+
+// ---------------------------------------------------------------------------
+// 16. Parent feedback: a short rating survey sent to parents on WhatsApp as a link
+// ---------------------------------------------------------------------------
+
+model Survey {
+  id         String    @id @default(uuid()) @db.Uuid
+  coachingId String    @map("coaching_id") @db.Uuid
+  title      String    @db.VarChar(255)
+  question   String    @db.VarChar(500)
+  // The batch it went to; null means every parent of the institute
+  batchId    String?   @map("batch_id") @db.Uuid
+  sentCount  Int       @default(0) @map("sent_count")
+  createdBy  String?   @map("created_by") @db.Uuid
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  closedAt   DateTime? @map("closed_at") @db.Timestamptz()
+
+  invites    SurveyInvite[]
+
+  @@index([coachingId, createdAt])
+  @@map("surveys")
+}
+
+// One parent's link. The token is the only credential: parents have no login, so it is long and random.
+model SurveyInvite {
+  id          String    @id @default(uuid()) @db.Uuid
+  coachingId  String    @map("coaching_id") @db.Uuid
+  surveyId    String    @map("survey_id") @db.Uuid
+  parentId    String    @map("parent_id") @db.Uuid
+  token       String    @unique @db.VarChar(64)
+  rating      Int?      @db.SmallInt
+  comment     String?   @db.VarChar(1000)
+  respondedAt DateTime? @map("responded_at") @db.Timestamptz()
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+
+  survey      Survey    @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
+  @@unique([surveyId, parentId])
+  @@index([coachingId, surveyId])
+  @@map("survey_invites")
+}
+
+// ---------------------------------------------------------------------------
+// 17. Student panel: a student marking a homework as done
+// ---------------------------------------------------------------------------
+
+model HomeworkCompletion {
+  id         String   @id @default(uuid()) @db.Uuid
+  coachingId String   @map("coaching_id") @db.Uuid
+  homeworkId String   @map("homework_id") @db.Uuid
+  studentId  String   @map("student_id") @db.Uuid
+  doneAt     DateTime @default(now()) @map("done_at") @db.Timestamptz()
+
+  homework   Homework @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([homeworkId, studentId])
+  @@index([coachingId, studentId])
+  @@map("homework_completions")
 }

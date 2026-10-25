@@ -10,6 +10,9 @@ import {
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { toast } from '@/components/ui/toaster';
+import { useApiError } from '@/lib/use-api-error';
 import { KpiCard } from '@/components/dashboard/kpi-card';
 import { QueryError } from '@/components/dashboard/query-error';
 import { Button } from '@/components/ui/button';
@@ -20,7 +23,7 @@ import { StatePanel } from '@/components/ui/state-panel';
 import { can } from '@/lib/auth/permissions';
 import { useSession } from '@/lib/auth/use-session';
 import { todayInIndia } from '@/lib/dates';
-import { fromPaise, type OverdueInstallment, toPaise, useOverdueFees } from '@/lib/fees';
+import { fromPaise, type OverdueInstallment, toPaise, useOverdueFees, useRemindOverdue } from '@/lib/fees';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { whatsappLink } from '@/lib/phone';
 import { useCoachingProfile, useOwnerDashboard } from '@/lib/queries';
@@ -73,7 +76,20 @@ export function FeesPage() {
   const overdue = useOverdueFees();
   const institute = useCoachingProfile();
   const [search, setSearch] = useState('');
+  const [confirmingAll, setConfirmingAll] = useState(false);
+  const remindAll = useRemindOverdue();
+  const describeError = useApiError();
   const today = todayInIndia();
+
+  const sendAll = async () => {
+    try {
+      const result = await remindAll.mutateAsync();
+      toast.success(t('overdue.remindAllDone', { count: result.students }));
+      setConfirmingAll(false);
+    } catch (error) {
+      toast.error(describeError(error));
+    }
+  };
 
   const students = overdue.data ? groupOverdue(overdue.data) : [];
   const totalOverdue = fromPaise(students.reduce((sum, row) => sum + toPaise(row.total), 0));
@@ -129,6 +145,11 @@ export function FeesPage() {
             ) : null}
           </div>
           {students.length ? (
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Button variant="outline" onClick={() => setConfirmingAll(true)}>
+                <MessageCircle className="text-whatsapp" aria-hidden />
+                {t('overdue.remindAll')}
+              </Button>
             <SearchInput
               value={search}
               onSearch={setSearch}
@@ -137,8 +158,20 @@ export function FeesPage() {
               placeholder={t('overdue.searchPlaceholder')}
               clearLabel={common('clearSearch')}
             />
+            </div>
           ) : null}
         </div>
+
+        <ConfirmDialog
+          open={confirmingAll}
+          onOpenChange={setConfirmingAll}
+          title={t('overdue.remindAllTitle', { count: students.length })}
+          description={t('overdue.remindAllBody')}
+          confirmLabel={t('overdue.remindAllConfirm')}
+          cancelLabel={common('cancel')}
+          pending={remindAll.isPending}
+          onConfirm={() => void sendAll()}
+        />
 
         {overdue.isPending ? (
           <div className="flex flex-col gap-2" aria-busy="true">

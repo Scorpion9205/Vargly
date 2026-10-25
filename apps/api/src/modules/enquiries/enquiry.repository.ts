@@ -1,3 +1,4 @@
+import { RequestContextService } from '../../common/services/request-context.service.js';
 import { getPrismaClient, ExtendedPrismaClient } from '../../database/prisma/tenant-prisma.extension.js';
 import {
   ENQUIRY_STATUSES,
@@ -29,6 +30,7 @@ export interface UpdateEnquiryInput {
   readonly notes?: string | null;
   readonly followUpOn?: string | null;
   readonly lastContactedAt?: Date;
+  readonly studentId?: string;
 }
 
 export interface EnquiryFilter {
@@ -46,6 +48,10 @@ export interface IEnquiryRepository {
   update(id: string, input: UpdateEnquiryInput): Promise<EnquiryRecord>;
   softDelete(id: string): Promise<void>;
   summary(today: string): Promise<EnquirySummary>;
+  /** Public page: the institute behind a code, found without a tenant context */
+  findCoachingByCode(code: string): Promise<{ id: string; name: string } | null>;
+  /** Whether this number already asked since the given time (a double tap or a repeat) */
+  hasRecentFromPhone(coachingId: string, phone: string, since: Date): Promise<boolean>;
 }
 
 const OPEN: EnquiryStatusType[] = ['NEW', 'CONTACTED'];
@@ -111,6 +117,24 @@ export class PrismaEnquiryRepository implements IEnquiryRepository {
 
   public async softDelete(id: string): Promise<void> {
     await this.db.enquiry.delete({ where: { id } }); // the tenant extension turns this into a soft delete
+  }
+
+  public async findCoachingByCode(code: string): Promise<{ id: string; name: string } | null> {
+    return RequestContextService.runAsSystem('enquiries:public-form', () =>
+      this.db.coaching.findFirst({
+        where: { code, deletedAt: null, isActive: true },
+        select: { id: true, name: true },
+      }),
+    );
+  }
+
+  public async hasRecentFromPhone(coachingId: string, phone: string, since: Date): Promise<boolean> {
+    return RequestContextService.runForTenant(coachingId, async () => {
+      const count = await this.db.enquiry.count({
+        where: { deletedAt: null, phone, createdAt: { gte: since } },
+      });
+      return count > 0;
+    });
   }
 
   public async summary(today: string): Promise<EnquirySummary> {

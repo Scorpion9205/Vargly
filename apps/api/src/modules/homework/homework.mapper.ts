@@ -10,6 +10,8 @@ export class HomeworkMapper {
       description: entity.description,
       dueDate: new Date(entity.dueDate),
       attachmentUrl: entity.attachmentUrl,
+      // How many students marked it done in their panel
+      completedCount: entity._count?.completions ?? 0,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     };

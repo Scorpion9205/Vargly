@@ -52,7 +52,7 @@ export interface Paper {
 export interface PaperShare {
   id: string;
   batchId: string;
-  kind: 'HOMEWORK' | 'PRACTICE';
+  kind: 'HOMEWORK' | 'PRACTICE' | 'MATERIAL';
   link: string;
   homeworkId: string | null;
   openCount: number;
@@ -84,7 +84,7 @@ export interface GenerateInput {
 
 export interface PublishInput {
   batchId: string;
-  kind: 'HOMEWORK' | 'PRACTICE';
+  kind: 'HOMEWORK' | 'PRACTICE' | 'MATERIAL';
   title?: string;
   dueDate?: string;
 }
@@ -242,9 +242,17 @@ function fileNameFrom(disposition: string | null, fallback: string): string {
 export async function fetchPdf(
   path: string,
   fallbackName: string,
+  /** A POST with a JSON body, for PDFs made from what the page sends */
+  post?: unknown,
 ): Promise<{ blob: Blob; fileName: string }> {
   const get = (token?: string) =>
-    fetch(`${API_URL}${path}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+    fetch(`${API_URL}${path}`, {
+      ...(post === undefined ? {} : { method: 'POST', body: JSON.stringify(post) }),
+      headers: {
+        ...(post === undefined ? {} : { 'Content-Type': 'application/json' }),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
 
   let response = await get(getSession()?.accessToken);
   if (response.status === 401) {
@@ -277,8 +285,8 @@ export async function openPdf(path: string, fallbackName: string): Promise<void>
 }
 
 /** Saves the PDF to the device */
-export async function downloadPdf(path: string, fallbackName: string): Promise<void> {
-  const { blob, fileName } = await fetchPdf(path, fallbackName);
+export async function downloadPdf(path: string, fallbackName: string, post?: unknown): Promise<void> {
+  const { blob, fileName } = await fetchPdf(path, fallbackName, post);
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;

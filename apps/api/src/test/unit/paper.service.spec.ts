@@ -258,6 +258,15 @@ describe('PaperService', () => {
       expect((await service.get(paper.id, TEACHER)).status).toBe('PUBLISHED');
     });
 
+    it('shares study material like a practice paper, and says so in the event so parents get the right message', async () => {
+      const { paper } = await generated();
+      const result = await service.publish(paper.id, { batchId: BATCH, kind: 'MATERIAL', title: 'Light notes' }, COACHING, TEACHER);
+
+      expect(result).toMatchObject({ kind: 'MATERIAL', homeworkId: null });
+      expect(createHomework).not.toHaveBeenCalled();
+      expect(publish.mock.calls[0][0].payload).toMatchObject({ title: 'Light notes', kind: 'MATERIAL', link: result.link });
+    });
+
     it('shares as homework: the homework carries the link, and the homework alert is the only message', async () => {
       const { paper } = await generated();
       const result = await service.publish(paper.id, { batchId: BATCH, kind: 'HOMEWORK', dueDate: '2026-11-01' }, COACHING, TEACHER);

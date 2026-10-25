@@ -1,8 +1,8 @@
 'use client';
 
 import { Environment, Float, Lightformer, PerformanceMonitor, Sparkles } from '@react-three/drei';
-import { Canvas } from '@react-three/fiber';
-import { useState } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
+import { useCallback, useEffect, useState } from 'react';
 import type { NamedKey, StopKey, Vec3 } from './keyframes';
 import { Books, ChatBubble, Choreo, Coin, GradCap, Pencil, PointerRig, Rings, Ticks } from './objects';
 
@@ -113,12 +113,51 @@ const TICKS_PORTRAIT: NamedKey[] = [TICKS_PORTRAIT_HERO, ...TICKS.slice(1)];
  * sections as it scrolls and lean toward the pointer. Lighting comes from a made-up studio (a few
  * bright panels), so nothing is downloaded: no environment map, no models.
  */
-export default function SceneCanvas({ lite }: { lite: boolean }) {
+/**
+ * Compiles every shader before the first frame. The canvas does not draw until this is done
+ * (a first frame would compile them all in one blocking go, freezing the page for a second or
+ * two on a laptop GPU), and the browser can compile them in parallel while the page stays
+ * responsive. A timer is the fallback, so a browser that never answers does not keep the scene hidden.
+ */
+function WarmUp({ onWarm }: { onWarm: () => void }) {
+  const gl = useThree((state) => state.gl);
+  const scene = useThree((state) => state.scene);
+  const camera = useThree((state) => state.camera);
+
+  useEffect(() => {
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      onWarm();
+    };
+    const fallback = window.setTimeout(finish, 2500);
+    const compile = (gl as { compileAsync?: (s: typeof scene, c: typeof camera) => Promise<unknown> }).compileAsync;
+    if (compile) void compile.call(gl, scene, camera).catch(() => undefined).finally(finish);
+    else finish();
+    return () => {
+      done = true;
+      window.clearTimeout(fallback);
+    };
+  }, [gl, scene, camera, onWarm]);
+
+  return null;
+}
+
+export default function SceneCanvas({ lite, onReady }: { lite: boolean; onReady: () => void }) {
   const [dpr, setDpr] = useState<[number, number]>(lite ? [1, 1] : [1, 1.75]);
+  const [drawing, setDrawing] = useState(false);
+
+  // Drawing starts once the shaders are compiled; the scene fades in after its first frames
+  const onWarm = useCallback(() => {
+    setDrawing(true);
+    requestAnimationFrame(() => requestAnimationFrame(onReady));
+  }, [onReady]);
 
   return (
     <Canvas
       dpr={dpr}
+      frameloop={drawing ? 'always' : 'never'}
       camera={{ position: [0, 0, 10], fov: 32 }}
       gl={{ antialias: !lite, alpha: true, powerPreference: 'high-performance' }}
       // The canvas lets every click through to the page, but still reads the pointer for the parallax
@@ -134,7 +173,7 @@ export default function SceneCanvas({ lite }: { lite: boolean }) {
       <pointLight position={[-7, -2, 4]} intensity={60} color="#f26b3a" distance={26} />
       <pointLight position={[7, 3, -3]} intensity={36} color="#7aa2ff" distance={26} />
 
-      <Environment resolution={256} frames={1}>
+      <Environment resolution={128} frames={1}>
         <Lightformer form="rect" intensity={3.2} color="#fff4ec" position={[0, 6, 6]} scale={[16, 3, 1]} />
         <Lightformer form="rect" intensity={2.4} color="#ff9a6b" position={[-8, 0, 2]} rotation-y={Math.PI / 2} scale={[2, 10, 1]} />
         <Lightformer form="rect" intensity={2.2} color="#9db4ff" position={[8, 2, -2]} rotation-y={-Math.PI / 2} scale={[2, 8, 1]} />
@@ -182,6 +221,8 @@ export default function SceneCanvas({ lite }: { lite: boolean }) {
           </>
         )}
       </PointerRig>
+
+      <WarmUp onWarm={onWarm} />
 
       <Sparkles count={lite ? 24 : 70} scale={[20, 11, 8]} size={3.2} speed={0.25} opacity={0.65} color="#ffb899" />
     </Canvas>

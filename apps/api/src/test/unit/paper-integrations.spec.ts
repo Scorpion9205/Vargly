@@ -10,6 +10,7 @@ import { NotificationSubscribers } from '../../modules/notifications/notificatio
 import type { NotificationService } from '../../modules/notifications/notification.service.js';
 import { createHomeworkCreatedEvent } from '../../modules/homework/homework.events.js';
 import { createPaperSharedEvent } from '../../modules/papers/paper.events.js';
+import { createStudentLoginChangedEvent } from '../../modules/student-logins/student-login.events.js';
 import { renderTemplate } from '../../modules/notifications/whatsapp-templates.js';
 import { buildUserPrompt, parseGeneratedQuestions } from '../../modules/papers/question-generator.js';
 
@@ -141,5 +142,36 @@ describe('WhatsApp messages for papers', () => {
     expect(renderTemplate('homework_with_file', vars)).toBe(
       'New homework from Sharma Classes for Riya: Light worksheet. Please complete it by 1 Nov 2026. Download the paper here: https://x.in/dl/t Thank you.',
     );
+  });
+});
+
+describe('WhatsApp message when a student gets a login', () => {
+  const setup = () => {
+    const eventBus = new EventBus();
+    const enqueue = vi.fn().mockResolvedValue({ id: 'n1' });
+    NotificationSubscribers.register(eventBus, { enqueueNotification: enqueue } as unknown as NotificationService, async () => ({
+      receiptPrefix: 'RCT',
+      whatsappEnabled: true,
+    }));
+    return { eventBus, enqueue };
+  };
+
+  it('tells the parent where to sign in, and never what the password is', async () => {
+    const { eventBus, enqueue } = setup();
+    await eventBus.publish(
+      createStudentLoginChangedEvent({ coachingId: 'c1', studentId: 's1', action: 'CREATED', loginId: 'RIYA-4821', studentName: 'Riya Verma' }),
+    );
+
+    expect(enqueue).toHaveBeenCalledTimes(1);
+    const [dto] = enqueue.mock.calls[0];
+    expect(dto).toMatchObject({ recipient: 'student:s1:parent', templateName: 'student_panel_ready', templateVariables: { student: 'Riya Verma' } });
+    expect(JSON.stringify(dto)).not.toContain('RIYA-4821');
+  });
+
+  it('stays quiet for a reset or a switch-off', async () => {
+    const { eventBus, enqueue } = setup();
+    await eventBus.publish(createStudentLoginChangedEvent({ coachingId: 'c1', studentId: 's1', action: 'RESET', studentName: 'Riya Verma' }));
+    await eventBus.publish(createStudentLoginChangedEvent({ coachingId: 'c1', studentId: 's1', action: 'DISABLED', studentName: 'Riya Verma' }));
+    expect(enqueue).not.toHaveBeenCalled();
   });
 });

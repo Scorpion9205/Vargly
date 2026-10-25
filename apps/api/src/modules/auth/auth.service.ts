@@ -18,6 +18,7 @@ import { AuthResponseDto, AuthUserDto, LoginDto } from './dto/auth.dto.js';
 import { createUserLoggedInEvent, createUserLoggedOutEvent } from './auth.events.js';
 import { logger } from '../../common/logger/logger.service.js';
 import { permissionResolver } from '../../common/security/permission-resolver.service.js';
+import { isStudentLoginEmail } from '../../common/security/student-login.js';
 import { EmailAuthMailer, IAuthMailer } from './auth.mailer.js';
 import { IOtpService, otpService as defaultOtpService } from '../../common/security/otp.service.js';
 
@@ -57,6 +58,16 @@ export class AuthService {
       );
     }
 
+    // A Student ID is only unique inside one institute, so it cannot be looked up without the code
+    if (isStudentLoginEmail(dto.email) && !dto.coachingCode?.trim()) {
+      throw new AppError(
+        'INSTITUTE_CODE_REQUIRED',
+        'Enter your institute code to sign in with a Student ID',
+        StatusCodes.BAD_REQUEST,
+        [{ path: ['coachingCode'], message: 'Enter your institute code' }],
+      );
+    }
+
     // 2. Fetch User Aggregate
     const user = await this.userRepository.findByEmail(dto.email, dto.coachingCode);
     if (!user) {
@@ -68,7 +79,9 @@ export class AuthService {
       );
     }
 
-    if (!user.isActive) {
+    // A student who has left (or was removed) keeps their record but not their login
+    const studentLeft = !!user.studentProfile && (!user.studentProfile.isActive || user.studentProfile.deletedAt !== null);
+    if (!user.isActive || studentLeft) {
       throw new AppError(
         'ACCOUNT_INACTIVE',
         'Your account has been deactivated. Please contact support.',

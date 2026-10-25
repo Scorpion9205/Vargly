@@ -6,6 +6,7 @@ import { BATCH_EVENTS, BatchCreatedPayload } from '../batches/batch.events.js';
 import { ATTENDANCE_EVENTS, AttendanceMarkedPayload } from '../attendance/attendance.events.js';
 import { TEST_EVENTS, TestCreatedPayload, MarksUploadedPayload } from '../tests/test.events.js';
 import { HOMEWORK_EVENTS, HomeworkCreatedPayload } from '../homework/homework.events.js';
+import { STUDENT_LOGIN_EVENTS, StudentLoginChangedPayload } from '../student-logins/student-login.events.js';
 import { DomainEvent } from '@vargly/types';
 import { logger } from '../../common/logger/logger.service.js';
 
@@ -267,6 +268,25 @@ export class AuditSubscribers {
         );
       } catch (err) {
         logger.error('[AuditSubscribers] Error recording EXPENSE_RECORDED audit log:', err);
+      }
+    });
+
+    // 13. A student's login was made, reset or switched off (last, so retries find the handlers in order)
+    eventBus.subscribe(STUDENT_LOGIN_EVENTS.CHANGED, async (event: DomainEvent<StudentLoginChangedPayload>) => {
+      try {
+        await auditService.recordLog(
+          {
+            userId: event.metadata?.userId,
+            action: `STUDENT_LOGIN_${event.payload.action}`,
+            entityName: 'Student',
+            entityId: event.payload.studentId,
+            afterState: event.payload.loginId ? { loginId: event.payload.loginId } : {},
+          },
+          event.payload.coachingId,
+          event.metadata?.correlationId,
+        );
+      } catch (err) {
+        logger.error('[AuditSubscribers] Error recording STUDENT_LOGIN audit log:', err);
       }
     });
   }

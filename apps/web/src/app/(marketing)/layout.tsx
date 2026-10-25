@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Backdrop } from '@/components/landing/backdrop';
 import { SceneLoader } from '@/components/landing/scene/scene-loader';
+import { Splash } from '@/components/landing/splash';
 import { SmoothScroll } from '@/components/landing/smooth-scroll';
 import { SiteFooter } from '@/components/marketing/site-footer';
 import { SiteHeader } from '@/components/marketing/site-header';
@@ -14,6 +15,7 @@ export default async function MarketingLayout({ children }: Readonly<{ children:
     // The public site is always dark: the 3D scene and its lighting are built for it. The `dark`
     // class re-themes everything inside; the signed-in app keeps the user's own theme.
     <div id="marketing-root" className="dark relative flex min-h-dvh flex-col bg-background text-foreground">
+      <Splash />
       <SmoothScroll />
       <Backdrop />
       <SceneLoader />

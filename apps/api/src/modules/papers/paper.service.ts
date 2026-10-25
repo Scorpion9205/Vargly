@@ -56,7 +56,7 @@ export interface PaperDto {
 export interface ShareDto {
   readonly id: string;
   readonly batchId: string;
-  readonly kind: 'HOMEWORK' | 'PRACTICE';
+  readonly kind: 'HOMEWORK' | 'PRACTICE' | 'MATERIAL';
   readonly link: string;
   readonly homeworkId: string | null;
   readonly openCount: number;
@@ -463,10 +463,10 @@ export class PaperService {
     }
     await this.repository.updatePaper(id, { status: 'PUBLISHED' });
 
-    if (dto.kind === 'PRACTICE') {
+    if (dto.kind === 'PRACTICE' || dto.kind === 'MATERIAL') {
       await this.eventBus.publish(
         createPaperSharedEvent(
-          { shareId: share.id, paperId: id, coachingId, batchId: dto.batchId, title, link },
+          { shareId: share.id, paperId: id, coachingId, batchId: dto.batchId, title, link, kind: dto.kind },
           correlationId,
           actor.userId,
         ),

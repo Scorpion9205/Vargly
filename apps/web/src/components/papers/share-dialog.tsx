@@ -60,7 +60,7 @@ function ShareForm({
   const publish = usePublishPaper(paper.id);
 
   const [batchId, setBatchId] = useState('');
-  const [kind, setKind] = useState<'HOMEWORK' | 'PRACTICE'>('HOMEWORK');
+  const [kind, setKind] = useState<'HOMEWORK' | 'PRACTICE' | 'MATERIAL'>(paper.source === 'UPLOAD' ? 'MATERIAL' : 'HOMEWORK');
   const [title, setTitle] = useState(paper.title);
   const [dueDate, setDueDate] = useState(addDays(todayInIndia(), 1));
   const [preparing, setPreparing] = useState(false);
@@ -69,7 +69,7 @@ function ShareForm({
 
   const activeBatches = (batches.data ?? []).filter((batch) => batch.isActive);
   const chosen = activeBatches.find((batch) => batch.id === batchId);
-  const ready = batchId !== '' && title.trim() !== '' && (kind === 'PRACTICE' || dueDate !== '');
+  const ready = batchId !== '' && title.trim() !== '' && (kind !== 'HOMEWORK' || dueDate !== '');
 
   const copy = async (link: string) => {
     try {
@@ -149,7 +149,7 @@ function ShareForm({
 
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 text-sm font-medium">{t('kind')}</legend>
-        {(['HOMEWORK', 'PRACTICE'] as const).map((value) => (
+        {(['HOMEWORK', 'PRACTICE', 'MATERIAL'] as const).map((value) => (
           <label
             key={value}
             className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 has-[:checked]:border-primary has-[:checked]:bg-brand-soft/40"
@@ -163,10 +163,10 @@ function ShareForm({
             />
             <span>
               <span className="block text-sm font-medium">
-                {value === 'HOMEWORK' ? t('homework') : t('practice')}
+                {t(value === 'HOMEWORK' ? 'homework' : value === 'PRACTICE' ? 'practice' : 'material')}
               </span>
               <span className="block text-xs text-muted-foreground">
-                {value === 'HOMEWORK' ? t('homeworkHint') : t('practiceHint')}
+                {t(value === 'HOMEWORK' ? 'homeworkHint' : value === 'PRACTICE' ? 'practiceHint' : 'materialHint')}
               </span>
             </span>
           </label>

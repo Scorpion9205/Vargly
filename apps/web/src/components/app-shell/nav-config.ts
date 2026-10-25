@@ -15,6 +15,12 @@ import {
   Users,
   Wallet,
   Banknote,
+  Bot,
+  UserCheck,
+  MessageSquareHeart,
+  Award,
+  FileSpreadsheet,
+  KeyRound,
   ShieldCheck,
   Sparkles,
 } from 'lucide-react';
@@ -36,7 +42,13 @@ export type NavKey =
   | 'billing'
   | 'admin'
   | 'papers'
-  | 'enquiries';
+  | 'enquiries'
+  | 'assistant'
+  | 'staffAttendance'
+  | 'surveys'
+  | 'certificates'
+  | 'exports'
+  | 'studentLogins';
 
 export interface NavItem {
   key: NavKey;
@@ -64,6 +76,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { key: 'students', href: '/app/students', icon: Users, permission: 'students:read' },
       { key: 'batches', href: '/app/batches', icon: Layers, permission: 'batches:read' },
+      { key: 'studentLogins', href: '/app/student-logins', icon: KeyRound, permission: 'student_logins:manage' },
       {
         key: 'attendance',
         href: '/app/attendance',
@@ -87,9 +100,14 @@ export const NAV_GROUPS: NavGroup[] = [
     key: 'institute',
     items: [
       { key: 'enquiries', href: '/app/enquiries', icon: PhoneIncoming, permission: 'enquiries:manage' },
+      { key: 'assistant', href: '/app/assistant', icon: Bot, permission: 'knowledge:manage' },
+      { key: 'staffAttendance', href: '/app/staff-attendance', icon: UserCheck, permission: 'staff_attendance:manage' },
+      { key: 'surveys', href: '/app/surveys', icon: MessageSquareHeart, permission: 'surveys:manage' },
+      { key: 'certificates', href: '/app/certificates', icon: Award, permission: 'certificates:manage' },
       { key: 'teachers', href: '/app/teachers', icon: GraduationCap, permission: 'teachers:read' },
       { key: 'notices', href: '/app/notices', icon: Megaphone, permission: 'notices:read' },
       { key: 'reports', href: '/app/reports', icon: BarChart3, permission: 'reports:read' },
+      { key: 'exports', href: '/app/exports', icon: FileSpreadsheet, permission: 'exports:read' },
     ],
   },
   {

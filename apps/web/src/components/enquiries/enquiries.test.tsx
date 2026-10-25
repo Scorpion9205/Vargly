@@ -27,6 +27,7 @@ const enquiry = (overrides: Partial<Enquiry> = {}): Enquiry => ({
   notes: 'Asked about the fees',
   followUpOn: '2020-01-01',
   lastContactedAt: null,
+  studentId: null,
   createdAt: '2026-10-18T05:00:00.000Z',
   ...overrides,
 });
@@ -45,6 +46,11 @@ function enquiriesApi(items: Enquiry[]) {
     http.get(`${API_URL}/enquiries`, ({ request }) => {
       requests.push(new URL(request.url).searchParams);
       return HttpResponse.json({ data: items });
+    }),
+    http.get(`${API_URL}/batches`, () => HttpResponse.json({ data: [{ id: 'b1', name: 'Class 10 Maths', academicYear: '2026-27', daysOfWeek: [], isActive: true, createdAt: '2026-04-01T00:00:00.000Z' }] })),
+    http.post(`${API_URL}/enquiries/:id/admit`, async ({ request }) => {
+      updates.push(await request.json());
+      return HttpResponse.json({ data: { ...items[0], status: 'ADMITTED', studentId: 's1' } });
     }),
     http.put(`${API_URL}/enquiries/:id`, async ({ request }) => {
       updates.push(await request.json());
@@ -83,6 +89,18 @@ describe('EnquiriesPage', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: 'Mark called' }));
     await waitFor(() => expect(updates).toEqual([{ status: 'CONTACTED' }]));
+  });
+
+  it('admits an enquiry as a student, filling the name from the enquiry', async () => {
+    const { updates } = enquiriesApi([enquiry()]);
+    signInAs(OWNER);
+    renderWithIntl(<EnquiriesPage />);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Admit as student' }));
+    expect(await screen.findByLabelText("Student's first name")).toHaveValue('Riya');
+    await userEvent.type(await screen.findByLabelText('Last name'), 'Verma');
+    await userEvent.click(screen.getByRole('button', { name: 'Admit student' }));
+    await waitFor(() => expect(updates).toEqual([{ firstName: 'Riya', lastName: 'Verma', relation: 'GUARDIAN' }]));
   });
 
   it('asks for only the calls that are due on the "Call today" tab', async () => {

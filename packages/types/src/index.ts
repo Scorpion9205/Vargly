@@ -6,6 +6,7 @@ export enum RoleType {
   SUPER_ADMIN = 'SUPER_ADMIN',
   OWNER = 'OWNER',
   TEACHER = 'TEACHER',
+  STUDENT = 'STUDENT',
 }
 
 export enum AttendanceStatus {

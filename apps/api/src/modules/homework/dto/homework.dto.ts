@@ -21,6 +21,8 @@ export interface HomeworkResponseDto {
   readonly description: string;
   readonly dueDate: Date;
   readonly attachmentUrl?: string | null;
+  /** How many students marked it done in the student panel */
+  readonly completedCount: number;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }

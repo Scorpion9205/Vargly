@@ -27,6 +27,10 @@ export interface TestResultReadyPayload {
   readonly totalMarks: number;
   readonly percentage: number;
   readonly isAbsent: boolean;
+  /** Where the student stands among those who sat the test; left out for a small class or an absentee */
+  readonly rank?: number;
+  readonly outOf?: number;
+  readonly classAveragePercentage?: number;
 }
 
 export const TEST_EVENTS = {

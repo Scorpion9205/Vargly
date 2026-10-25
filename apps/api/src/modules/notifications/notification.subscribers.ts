@@ -4,11 +4,18 @@ import { ATTENDANCE_EVENTS, AttendanceMarkedPayload } from '../attendance/attend
 import { TEST_EVENTS, TestResultReadyPayload } from '../tests/test.events.js';
 import { HOMEWORK_EVENTS, HomeworkCreatedPayload } from '../homework/homework.events.js';
 import { PAPER_EVENTS, PaperSharedPayload } from '../papers/paper.events.js';
+import { standingText } from '../tests/test-ranking.js';
+import { receiptLink } from '../fees/receipt-link.js';
+import { ENQUIRY_EVENTS, EnquiryReceivedPayload } from '../enquiries/enquiry.events.js';
+import { STUDENT_LOGIN_EVENTS, StudentLoginChangedPayload } from '../student-logins/student-login.events.js';
+import { SURVEY_EVENTS, SurveyOpenedPayload } from '../surveys/survey.events.js';
+import { OWNER_SUMMARY_EVENTS, OwnerSummaryPayload } from '../owner-summary/owner-summary.events.js';
 import { FEE_EVENTS, FeePaidPayload, FeeReminderTriggeredPayload } from '../fees/fee.events.js';
 import { NOTICE_EVENTS, NoticeCreatedPayload } from '../notice-board/notice.events.js';
 import { RISK_EVENTS, RiskDetectedPayload } from '../risk-engine/risk-engine.events.js';
 import { BILLING_EVENTS, SubscriptionExpiringPayload } from '../billing/billing.events.js';
 import { NotificationChannel, DomainEvent, AttendanceStatus } from '@vargly/types';
+import { envConfig } from '../../config/env.config.js';
 import { logger } from '../../common/logger/logger.service.js';
 import {
   CoachingPreferences,
@@ -87,9 +94,17 @@ export class NotificationSubscribers {
         } = event.payload;
         const idempotencyKey = `test.result.${testId}.${studentId}`;
 
+        const standing =
+          event.payload.rank !== undefined
+            ? standingText({
+                rank: event.payload.rank,
+                outOf: event.payload.outOf ?? 0,
+                averagePercentage: event.payload.classAveragePercentage ?? 0,
+              })
+            : '';
         const result = isAbsent
           ? 'absent for this test'
-          : `scored ${marksObtained}/${totalMarks} (${percentage}%)`;
+          : `scored ${marksObtained}/${totalMarks} (${percentage}%)${standing ? `. ${standing}` : ''}`;
 
         try {
           await service.enqueueNotification(
@@ -147,9 +162,11 @@ export class NotificationSubscribers {
 
     // 4. Fee Payment Recorded -> Queue WhatsApp Payment Confirmation
     eventBus.subscribe(FEE_EVENTS.FEE_PAID, async (event: DomainEvent<FeePaidPayload>) => {
-      const { coachingId, studentId, amount, receiptNumber, remainingBalance } = event.payload;
+      const { coachingId, studentId, amount, receiptNumber, remainingBalance, transactionId } = event.payload;
       const idempotencyKey = `fee.paid.${receiptNumber}`;
-      const content = `Payment received: ${rupees(amount)}, receipt #${receiptNumber}. Balance due: ${rupees(remainingBalance)}.`;
+      // The parent opens the receipt as a PDF from this signed link
+      const link = receiptLink(transactionId);
+      const content = `Payment received: ${rupees(amount)}, receipt #${receiptNumber}. Balance due: ${rupees(remainingBalance)}. Receipt: ${link}`;
 
       try {
         await service.enqueueNotification(
@@ -164,6 +181,7 @@ export class NotificationSubscribers {
               amount: rupees(amount),
               receipt: receiptNumber,
               balance: rupees(remainingBalance),
+              link,
             },
             idempotencyKey,
           },
@@ -305,15 +323,16 @@ ${content}`
     // 8. Paper shared with a batch -> Queue the download link to its parents. Last on purpose:
     //    retries find handlers by their registration order, so new ones go at the end.
     eventBus.subscribe(PAPER_EVENTS.PAPER_SHARED, async (event: DomainEvent<PaperSharedPayload>) => {
-      const { coachingId, shareId, batchId, title, link } = event.payload;
+      const { coachingId, shareId, batchId, title, link, kind } = event.payload;
+      const material = kind === 'MATERIAL';
       try {
         await service.enqueueNotification(
           {
             channel: NotificationChannel.WHATSAPP,
             recipient: `batch:${batchId}:contacts`,
             recipientType: 'PARENT',
-            content: `New practice paper: "${title}". Download: ${link}`,
-            templateName: 'paper_shared',
+            content: `${material ? 'New study material' : 'New practice paper'}: "${title}". Download: ${link}`,
+            templateName: material ? 'material_shared' : 'paper_shared',
             templateLanguage: 'en',
             templateVariables: { title, link },
             idempotencyKey: `paper.shared.${shareId}`,
@@ -323,6 +342,108 @@ ${content}`
         );
       } catch (err) {
         logger.error(`[NotificationSubscribers] Failed enqueuing paper link:`, err);
+      }
+    });
+
+    // 9. Someone filled in the public enquiry page -> tell the owner on WhatsApp
+    eventBus.subscribe(ENQUIRY_EVENTS.ENQUIRY_RECEIVED, async (event: DomainEvent<EnquiryReceivedPayload>) => {
+      const { coachingId, enquiryId, name, phone, interestedIn } = event.payload;
+      try {
+        await service.enqueueNotification(
+          {
+            channel: NotificationChannel.WHATSAPP,
+            recipient: `coaching:${coachingId}:owner`,
+            recipientType: 'TEACHER',
+            content: `New enquiry: ${name} (${phone}) asked about ${interestedIn ?? 'your classes'}.`,
+            templateName: 'new_enquiry',
+            templateLanguage: 'en',
+            templateVariables: { name, phone, interest: interestedIn ?? 'your classes' },
+            idempotencyKey: `enquiry.received.${enquiryId}`,
+          },
+          coachingId,
+          event.metadata?.correlationId,
+        );
+      } catch (err) {
+        logger.error(`[NotificationSubscribers] Failed enqueuing enquiry alert:`, err);
+      }
+    });
+
+    // 11. A feedback survey was opened -> each parent gets their own link on WhatsApp
+    eventBus.subscribe(SURVEY_EVENTS.SURVEY_OPENED, async (event: DomainEvent<SurveyOpenedPayload>) => {
+      const { coachingId, title, invites } = event.payload;
+      for (const invite of invites) {
+        try {
+          await service.enqueueNotification(
+            {
+              channel: NotificationChannel.WHATSAPP,
+              recipient: invite.phone,
+              recipientType: 'PARENT',
+              content: `Feedback request: ${title}. Share your rating: ${invite.link}`,
+              templateName: 'survey_invite',
+              templateLanguage: 'en',
+              templateVariables: { title, link: invite.link },
+              idempotencyKey: `survey.invite.${invite.token}`,
+            },
+            coachingId,
+            event.metadata?.correlationId,
+          );
+        } catch (err) {
+          logger.error(`[NotificationSubscribers] Failed enqueuing a survey invite:`, err);
+        }
+      }
+    });
+
+    // 10. The owner's morning summary
+    eventBus.subscribe(OWNER_SUMMARY_EVENTS.OWNER_SUMMARY_READY, async (event: DomainEvent<OwnerSummaryPayload>) => {
+      const { coachingId, date, absentYesterday, overdueCount, overdueAmount, callsDue } = event.payload;
+      const amount = `Rs ${overdueAmount.toLocaleString('en-IN')}`;
+      try {
+        await service.enqueueNotification(
+          {
+            channel: NotificationChannel.WHATSAPP,
+            recipient: `coaching:${coachingId}:owner`,
+            recipientType: 'TEACHER',
+            content: `Daily summary: ${absentYesterday} absent yesterday, ${overdueCount} fees overdue (${amount}), ${callsDue} enquiries to call today.`,
+            templateName: 'owner_daily_summary',
+            templateLanguage: 'en',
+            templateVariables: {
+              absent: String(absentYesterday),
+              overdue: String(overdueCount),
+              amount,
+              calls: String(callsDue),
+            },
+            idempotencyKey: `owner.summary.${coachingId}.${date}`,
+          },
+          coachingId,
+          event.metadata?.correlationId,
+        );
+      } catch (err) {
+        logger.error(`[NotificationSubscribers] Failed enqueuing the owner summary:`, err);
+      }
+    });
+
+    // 12. A student got a login -> the parent is told on WhatsApp where to look (the link only, never the password)
+    eventBus.subscribe(STUDENT_LOGIN_EVENTS.CHANGED, async (event: DomainEvent<StudentLoginChangedPayload>) => {
+      const { coachingId, studentId, studentName, action } = event.payload;
+      if (action !== 'CREATED') return;
+      const link = `${envConfig.get('FRONTEND_URL').replace(/\/+$/, '')}/login`;
+      try {
+        await service.enqueueNotification(
+          {
+            channel: NotificationChannel.WHATSAPP,
+            recipient: `student:${studentId}:parent`,
+            recipientType: 'PARENT',
+            content: `The student panel is ready for ${studentName ?? 'your child'}: ${link}`,
+            templateName: 'student_panel_ready',
+            templateLanguage: 'en',
+            templateVariables: { student: studentName ?? 'your child', link },
+            idempotencyKey: `student.panel.${event.eventId}`,
+          },
+          coachingId,
+          event.metadata?.correlationId,
+        );
+      } catch (err) {
+        logger.error(`[NotificationSubscribers] Failed enqueuing the student panel message:`, err);
       }
     });
   }

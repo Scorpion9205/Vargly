@@ -55,6 +55,15 @@ export async function authenticateMiddleware(
     }
   }
 
+  // A temporary password is only good for signing in and choosing a new one
+  if (access.mustChangePassword && !req.originalUrl.startsWith('/api/v1/auth/')) {
+    throw new AppError(
+      'PASSWORD_CHANGE_REQUIRED',
+      'Choose a new password before you continue',
+      StatusCodes.FORBIDDEN,
+    );
+  }
+
   const currentContext = RequestContextService.getContext();
   const authenticatedContext: RequestContextData = {
     traceId: currentContext?.traceId || 'auth-trace',

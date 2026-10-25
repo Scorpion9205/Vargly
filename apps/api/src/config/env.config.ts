@@ -28,6 +28,10 @@ const envSchema = z.object({
   JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
+  // A ceiling on the whole API a minute, on top of the tighter limits on login, OTP and public pages.
+  // An institute's office shares one address, so the per-address figure is high.
+  API_RATE_LIMIT_IP_PER_MINUTE: z.coerce.number().int().positive().default(600),
+  API_RATE_LIMIT_USER_PER_MINUTE: z.coerce.number().int().positive().default(300),
   // Express "trust proxy": number of proxy hops in front of the API (e.g. 1 behind an ingress),
   // "false" when clients connect directly, or a subnet list. Controls whether X-Forwarded-For
   // is believed when resolving the client IP used for rate limiting and lockout.

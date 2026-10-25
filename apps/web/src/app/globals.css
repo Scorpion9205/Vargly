@@ -283,6 +283,72 @@ html.lenis body {
   }
 }
 
+/*
+ * The opening splash: the wordmark rises letter by letter over a slow glow while a line fills.
+ * It leaves when the page's scene is ready (the script adds data-leaving), and the fail-safe
+ * animation fades it out on its own if scripts never run. Visitors who ask for less motion get no
+ * splash at all: the rule below shortens every animation delay to nothing, so it is gone at once.
+ *
+ * Everything here moves with transform and opacity only, and each moving part has its own layer
+ * (will-change), so the browser animates them off the main thread. The page is busy hydrating
+ * while the splash is up; anything that needed the main thread (a blur filter, a repaint) stuttered.
+ */
+@keyframes splash-letter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.45em, 0);
+  }
+}
+@keyframes splash-bar {
+  from {
+    transform: translate3d(-100%, 0, 0);
+  }
+}
+@keyframes splash-glow {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+@keyframes splash-failsafe {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+.splash {
+  transition:
+    opacity 700ms ease,
+    transform 700ms ease;
+  animation: splash-failsafe 500ms ease 4.8s forwards;
+  will-change: opacity, transform;
+}
+.splash[data-leaving='true'] {
+  opacity: 0;
+  transform: scale(1.04);
+  pointer-events: none;
+}
+.splash-letter {
+  display: inline-block;
+  animation: splash-letter 750ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  will-change: transform, opacity;
+}
+.splash-bar {
+  animation: splash-bar 3.4s cubic-bezier(0.1, 0.7, 0.2, 1) both;
+  will-change: transform;
+}
+.splash[data-leaving='true'] .splash-bar {
+  animation: none;
+}
+.splash-glow {
+  background: radial-gradient(circle, rgb(242 107 58 / 0.22), transparent 65%);
+  animation: splash-glow 2.4s ease-in-out infinite;
+  will-change: opacity;
+}
+
 /* Frosted panel: a faint light surface over the dark page and the scene behind it */
 @utility glass {
   background: rgb(255 255 255 / 0.05);

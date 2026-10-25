@@ -14,6 +14,8 @@ export interface InstituteSettings {
   config: {
     receiptPrefix?: string;
     notifications?: { whatsappEnabled?: boolean };
+    /** What students may use: the panel is on unless switched off, and fees stay hidden unless shown */
+    studentPortal?: { enabled?: boolean; showFees?: boolean; doubts?: boolean };
     /** Where registration stored the switch before settings existed */
     channels?: { whatsappEnabled?: boolean };
   };
@@ -66,7 +68,11 @@ export function useUpdatePreferences() {
   const queryClient = useQueryClient();
   const scope = useQueryScope();
   return useMutation({
-    mutationFn: (input: { receiptPrefix?: string; notifications?: { whatsappEnabled: boolean } }) =>
+    mutationFn: (input: {
+      receiptPrefix?: string;
+      notifications?: { whatsappEnabled: boolean };
+      studentPortal?: { enabled?: boolean; showFees?: boolean; doubts?: boolean };
+    }) =>
       api.put<InstituteSettings>('/settings', input),
     onSuccess: (settings) => queryClient.setQueryData([scope, 'settings'], settings),
   });

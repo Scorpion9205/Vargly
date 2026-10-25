@@ -52,6 +52,10 @@ export const TENANT_SCOPED_MODELS = new Set<string>([
   'Paper',
   'PaperShare',
   'Enquiry',
+  'StaffAttendance',
+  'Survey',
+  'SurveyInvite',
+  'HomeworkCompletion',
 ]);
 
 // Models that support soft deletion (have deletedAt column)

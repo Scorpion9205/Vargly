@@ -7,8 +7,12 @@ import { useQueryScope } from './queries';
 
 // apps/api enquiry DTOs; follow-up days are YYYY-MM-DD
 
-export const ENQUIRY_SOURCES = ['WALK_IN', 'PHONE', 'WHATSAPP', 'REFERRAL', 'OTHER'] as const;
+/** How an enquiry reached the institute; ONLINE_FORM is set by the public page, not chosen by the owner */
+export const ENQUIRY_SOURCES = ['WALK_IN', 'PHONE', 'WHATSAPP', 'REFERRAL', 'OTHER', 'ONLINE_FORM'] as const;
 export type EnquirySource = (typeof ENQUIRY_SOURCES)[number];
+
+/** The sources the owner can pick when noting down an enquiry by hand */
+export const MANUAL_SOURCES = ENQUIRY_SOURCES.filter((source) => source !== 'ONLINE_FORM');
 
 export const ENQUIRY_STATUSES = ['NEW', 'CONTACTED', 'ADMITTED', 'NOT_INTERESTED'] as const;
 export type EnquiryStatus = (typeof ENQUIRY_STATUSES)[number];
@@ -24,6 +28,8 @@ export interface Enquiry {
   notes: string | null;
   followUpOn: string | null;
   lastContactedAt: string | null;
+  /** The student this enquiry became, once admitted */
+  studentId: string | null;
   createdAt: string;
 }
 
@@ -100,6 +106,26 @@ export function useUpdateEnquiry(id: string) {
     mutationFn: (input: Partial<EnquiryInput> & { status?: EnquiryStatus }) =>
       api.put<Enquiry>(`/enquiries/${id}`, input),
     onSuccess: invalidate,
+  });
+}
+
+export interface AdmitInput {
+  firstName: string;
+  lastName: string;
+  relation: 'GUARDIAN' | 'MOTHER' | 'FATHER';
+  batchId?: string;
+}
+
+/** Makes the enquiry a student (with the parent linked and a batch if chosen) and marks it admitted */
+export function useAdmitEnquiry(id: string) {
+  const queryClient = useQueryClient();
+  const scope = useQueryScope();
+  return useMutation({
+    mutationFn: (input: AdmitInput) => api.post<Enquiry>(`/enquiries/${id}/admit`, input),
+    onSuccess: () => Promise.all([
+      queryClient.invalidateQueries({ queryKey: [scope, 'enquiries'] }),
+      queryClient.invalidateQueries({ queryKey: [scope, 'students'] }),
+    ]),
   });
 }
 

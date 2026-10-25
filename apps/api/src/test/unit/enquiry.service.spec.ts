@@ -26,6 +26,7 @@ class InMemoryEnquiryRepository implements IEnquiryRepository {
       notes: input.notes ?? null,
       followUpOn: input.followUpOn ?? null,
       lastContactedAt: null,
+      studentId: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -47,6 +48,12 @@ class InMemoryEnquiryRepository implements IEnquiryRepository {
   public async softDelete(id: string) {
     this.rows.delete(id);
   }
+  public async findCoachingByCode(code: string) {
+    return code === 'sharma' ? { id: 'c1', name: 'Sharma Classes' } : null;
+  }
+  public async hasRecentFromPhone(_coachingId: string, phone: string, _since: Date) {
+    return [...this.rows.values()].some((row) => row.phone === phone);
+  }
   public async summary(_today?: string) {
     return { total: this.rows.size, byStatus: { NEW: this.rows.size, CONTACTED: 0, ADMITTED: 0, NOT_INTERESTED: 0 }, dueToday: 0 };
   }
@@ -55,10 +62,19 @@ class InMemoryEnquiryRepository implements IEnquiryRepository {
 describe('EnquiryService', () => {
   let repo: InMemoryEnquiryRepository;
   let service: EnquiryService;
+  const calls: string[] = [];
+  const events: Array<{ eventName: string; payload: any }> = [];
+  const admission = {
+    students: { enrollStudent: async (dto: any) => (calls.push(`student:${dto.firstName} ${dto.lastName}`), { id: 'stu-1' } as any) },
+    parents: { createParent: async (dto: any) => (calls.push(`parent:${dto.name}:${dto.phone}:${dto.studentId}`), {} as any) },
+    batches: { enrollStudent: async (batchId: string, dto: any) => void calls.push(`batch:${batchId}:${dto.studentId}`) },
+  };
 
   beforeEach(() => {
+    calls.length = 0;
     repo = new InMemoryEnquiryRepository();
-    service = new EnquiryService(repo);
+    events.length = 0;
+    service = new EnquiryService(repo, admission as any, { publish: async (event: any) => void events.push(event) } as any);
   });
 
   const input = () => createEnquirySchema.parse({ name: 'Mrs Verma', phone: '98765 43210', followUpOn: '2026-10-25' });
@@ -95,5 +111,56 @@ describe('EnquiryService', () => {
   it('counts the day in India: just after 18:30 UTC it is already tomorrow', () => {
     expect(todayInIndia(new Date('2026-10-19T18:45:00Z'))).toBe('2026-10-20');
     expect(todayInIndia(new Date('2026-10-19T18:15:00Z'))).toBe('2026-10-19');
+  });
+
+  it('turns an enquiry into a student with the parent linked, in a batch, and marks it admitted', async () => {
+    const created = await service.create(input(), 'c1', 'u1');
+    const admitted = await service.admit(
+      created.id,
+      { firstName: 'Riya', lastName: 'Verma', relation: 'MOTHER', batchId: '11111111-1111-4111-8111-111111111111' },
+      'c1',
+      'u1',
+    );
+    expect(calls).toEqual([
+      'student:Riya Verma',
+      'parent:Mrs Verma:9876543210:stu-1',
+      'batch:11111111-1111-4111-8111-111111111111:stu-1',
+    ]);
+    expect(admitted).toMatchObject({ status: 'ADMITTED', studentId: 'stu-1', followUpOn: null });
+  });
+
+  it('does not admit the same enquiry twice', async () => {
+    const created = await service.create(input(), 'c1', 'u1');
+    await service.admit(created.id, { firstName: 'Riya', lastName: 'Verma', relation: 'GUARDIAN' }, 'c1');
+    await expect(
+      service.admit(created.id, { firstName: 'Riya', lastName: 'Verma', relation: 'GUARDIAN' }, 'c1'),
+    ).rejects.toMatchObject({ code: 'ALREADY_ADMITTED' });
+    expect(calls.filter((c) => c.startsWith('student:'))).toHaveLength(1);
+  });
+
+  describe('the public enquiry page', () => {
+    const form = () => ({ name: 'Mrs Verma', phone: '9876543210', studentName: 'Riya', interestedIn: 'Class 10', message: 'Fees?' });
+
+    it('saves the enquiry as an online one and tells the owner', async () => {
+      expect(await service.receiveOnline('sharma', form())).toBe(true);
+      const [saved] = [...repo.rows.values()];
+      expect(saved).toMatchObject({ source: 'ONLINE_FORM', status: 'NEW', notes: 'Fees?', coachingId: 'c1' });
+      expect(events.map((e) => e.eventName)).toEqual(['EnquiryReceived']);
+      expect(events[0]!.payload).toMatchObject({ coachingId: 'c1', name: 'Mrs Verma', phone: '9876543210' });
+    });
+
+    it('does not alert the owner twice for the same number', async () => {
+      await service.receiveOnline('sharma', form());
+      expect(await service.receiveOnline('sharma', form())).toBe(true);
+      expect(repo.rows.size).toBe(1);
+      expect(events).toHaveLength(1);
+    });
+
+    it('knows no institute by an unknown code', async () => {
+      expect(await service.receiveOnline('nobody', form())).toBe(false);
+      expect(await service.publicInstitute('nobody')).toBeNull();
+      expect(await service.publicInstitute('sharma')).toEqual({ name: 'Sharma Classes' });
+      expect(events).toHaveLength(0);
+    });
   });
 });

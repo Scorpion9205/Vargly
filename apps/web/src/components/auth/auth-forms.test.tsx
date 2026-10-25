@@ -42,7 +42,7 @@ describe('LoginForm', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
 
     expect(await screen.findAllByText('This field is required.')).toHaveLength(2);
-    expect(screen.getByLabelText('Email')).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByLabelText('Email or Student ID')).toHaveAttribute('aria-invalid', 'true');
   });
 
   it('signs in and goes to the requested page', async () => {
@@ -55,7 +55,7 @@ describe('LoginForm', () => {
     );
     renderWithIntl(<LoginForm next="/app/students" />);
 
-    await userEvent.type(screen.getByLabelText('Email'), 'asha@example.com');
+    await userEvent.type(screen.getByLabelText('Email or Student ID'), 'asha@example.com');
     await userEvent.type(screen.getByLabelText('Password'), 'secret123');
     await userEvent.type(screen.getByLabelText('Institute code (optional)'), 'Sharma-Classes');
     await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
@@ -69,11 +69,43 @@ describe('LoginForm', () => {
     expect(getSession()?.accessToken).toBe('access-1');
   });
 
+  it('signs a student in with a Student ID and the institute code, and lands in the student panel', async () => {
+    let body: unknown;
+    server.use(
+      http.post(`${BFF}/login`, async ({ request }) => {
+        body = await request.json();
+        return HttpResponse.json({
+          data: { ...session, user: { ...session.user, roles: ['STUDENT'], permissions: ['portal:student'] } },
+        });
+      }),
+    );
+    renderWithIntl(<LoginForm next="/app/students" />);
+
+    await userEvent.type(screen.getByLabelText('Email or Student ID'), 'RIYA-4821');
+    await userEvent.type(screen.getByLabelText('Password'), 'secret123');
+    await userEvent.type(screen.getByLabelText('Institute code (optional)'), 'Sharma-Classes');
+    await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith('/student'));
+    expect(body).toEqual({ email: 'RIYA-4821', password: 'secret123', coachingCode: 'sharma-classes' });
+  });
+
+  it('asks for the institute code before it signs in with a Student ID', async () => {
+    renderWithIntl(<LoginForm />);
+
+    await userEvent.type(screen.getByLabelText('Email or Student ID'), 'RIYA-4821');
+    await userEvent.type(screen.getByLabelText('Password'), 'secret123');
+    await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+
+    expect(await screen.findByText('Enter your institute code to sign in with a Student ID.')).toBeInTheDocument();
+    expect(router.replace).not.toHaveBeenCalled();
+  });
+
   it('never redirects off-site after signing in', async () => {
     server.use(http.post(`${BFF}/login`, () => HttpResponse.json({ data: session })));
     renderWithIntl(<LoginForm next="https://evil.example" />);
 
-    await userEvent.type(screen.getByLabelText('Email'), 'asha@example.com');
+    await userEvent.type(screen.getByLabelText('Email or Student ID'), 'asha@example.com');
     await userEvent.type(screen.getByLabelText('Password'), 'secret123');
     await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
 
@@ -88,11 +120,11 @@ describe('LoginForm', () => {
     );
     renderWithIntl(<LoginForm />);
 
-    await userEvent.type(screen.getByLabelText('Email'), 'asha@example.com');
+    await userEvent.type(screen.getByLabelText('Email or Student ID'), 'asha@example.com');
     await userEvent.type(screen.getByLabelText('Password'), 'wrong');
     await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(/Wrong email or password/);
+    expect(await screen.findByRole('alert')).toHaveTextContent(/Wrong email, Student ID or password/);
     expect(router.replace).not.toHaveBeenCalled();
   });
 

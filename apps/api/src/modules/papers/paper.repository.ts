@@ -3,7 +3,7 @@ import { RequestContextService } from '../../common/services/request-context.ser
 import { Question } from './paper.types.js';
 
 export type PaperSourceType = 'AI' | 'UPLOAD';
-export type PaperShareKindType = 'HOMEWORK' | 'PRACTICE';
+export type PaperShareKindType = 'HOMEWORK' | 'PRACTICE' | 'MATERIAL';
 
 export interface PaperRecord {
   readonly id: string;

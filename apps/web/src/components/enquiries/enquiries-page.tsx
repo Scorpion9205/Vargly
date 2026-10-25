@@ -7,12 +7,14 @@ import {
   Pencil,
   PhoneCall,
   Plus,
+  QrCode,
   Trash2,
   UserPlus,
   UserX,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import { parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { QueryError } from '@/components/dashboard/query-error';
@@ -44,6 +46,8 @@ import { useApiError } from '@/lib/use-api-error';
 const EnquiryFormDialog = dynamic(() =>
   import('./enquiry-form-dialog').then((m) => m.EnquiryFormDialog),
 );
+const AdmitDialog = dynamic(() => import('./admit-dialog').then((m) => m.AdmitDialog));
+const ShareLinkDialog = dynamic(() => import('./share-link-dialog').then((m) => m.ShareLinkDialog));
 
 const STATUS_TONE = {
   NEW: 'info',
@@ -55,6 +59,7 @@ const STATUS_TONE = {
 export function EnquiriesPage() {
   const t = useTranslations('Enquiries');
   const [adding, setAdding] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const [{ view, q }, setParams] = useQueryStates({
     view: parseAsStringLiteral(ENQUIRY_VIEWS).withDefault('all'),
     q: parseAsString.withDefault(''),
@@ -75,10 +80,19 @@ export function EnquiriesPage() {
       {t('add')}
     </Button>
   );
+  const headerActions = (
+    <div className="flex flex-wrap gap-2">
+      <Button variant="outline" onClick={() => setSharing(true)}>
+        <QrCode aria-hidden />
+        {t('shareLink')}
+      </Button>
+      {addButton}
+    </div>
+  );
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={t('title')} subtitle={t('subtitle')} actions={addButton} />
+      <PageHeader title={t('title')} subtitle={t('subtitle')} actions={headerActions} />
 
       <div role="group" aria-label={t('viewLabel')} className="flex flex-wrap gap-2">
         {ENQUIRY_VIEWS.map((key) => {
@@ -137,6 +151,7 @@ export function EnquiriesPage() {
       )}
 
       <EnquiryFormDialog open={adding} onOpenChange={setAdding} />
+      <ShareLinkDialog open={sharing} onOpenChange={setSharing} />
     </div>
   );
 }
@@ -148,6 +163,7 @@ function EnquiryCard({ enquiry }: { enquiry: Enquiry }) {
   const update = useUpdateEnquiry(enquiry.id);
   const remove = useDeleteEnquiry();
   const [editing, setEditing] = useState(false);
+  const [admitting, setAdmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const due = isDue(enquiry);
   const open = enquiry.status === 'NEW' || enquiry.status === 'CONTACTED';
@@ -243,7 +259,7 @@ function EnquiryCard({ enquiry }: { enquiry: Enquiry }) {
           ) : null}
           {open ? (
             <>
-              <Button size="sm" variant="outline" disabled={update.isPending} onClick={() => void mark('ADMITTED')}>
+              <Button size="sm" variant="outline" onClick={() => setAdmitting(true)}>
                 <UserPlus aria-hidden />
                 {t('action.ADMITTED')}
               </Button>
@@ -252,6 +268,10 @@ function EnquiryCard({ enquiry }: { enquiry: Enquiry }) {
                 {t('action.NOT_INTERESTED')}
               </Button>
             </>
+          ) : enquiry.studentId ? (
+            <Button asChild size="sm" variant="outline">
+              <Link href={`/app/students/${enquiry.studentId}`}>{t('action.viewStudent')}</Link>
+            </Button>
           ) : (
             <Button size="sm" variant="ghost" disabled={update.isPending} onClick={() => void mark('NEW')}>
               {t('action.reopen')}
@@ -269,6 +289,7 @@ function EnquiryCard({ enquiry }: { enquiry: Enquiry }) {
       </div>
 
       <EnquiryFormDialog open={editing} onOpenChange={setEditing} enquiry={enquiry} />
+      <AdmitDialog open={admitting} onOpenChange={setAdmitting} enquiry={enquiry} />
       <ConfirmDialog
         open={deleting}
         onOpenChange={setDeleting}

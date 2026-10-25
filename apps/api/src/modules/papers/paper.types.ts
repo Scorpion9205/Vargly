@@ -93,7 +93,7 @@ export type UpdatePaperDto = z.infer<typeof updatePaperSchema>;
 export const publishPaperSchema = z
   .object({
     batchId: z.string().uuid(),
-    kind: z.enum(['HOMEWORK', 'PRACTICE']),
+    kind: z.enum(['HOMEWORK', 'PRACTICE', 'MATERIAL']),
     /** Shown to parents; defaults to the paper's title */
     title: z.string().trim().min(1).max(255).optional(),
     dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use the format YYYY-MM-DD').optional(),

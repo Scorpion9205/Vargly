@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { denyStudents } from '../../common/decorators/deny-students.decorator.js';
 import { createRouter } from '../../common/http/async-router.js';
 import { AiController } from './ai.controller.js';
 import { authenticateMiddleware } from '../../common/middleware/auth.middleware.js';
@@ -14,7 +15,7 @@ export function createAiRouter(controller: AiController): Router {
   router.use(requireFeature('ai.insights'));
 
   // Credit & Wallet Management
-  router.get('/wallet', controller.getWalletBalance);
+  router.get('/wallet', denyStudents, controller.getWalletBalance);
   // Credits are bought through POST /api/v1/billing/orders and granted by the payment webhook
   router.get('/usage-logs', requirePermission('ai:view_logs'), controller.getUsageLogs);
 
