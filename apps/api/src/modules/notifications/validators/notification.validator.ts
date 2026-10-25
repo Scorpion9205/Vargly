@@ -8,7 +8,7 @@ export const sendNotificationSchema = z.object({
   content: z.string().min(1, 'Content is required'),
   templateName: z.string().optional(),
   templateLanguage: z.string().optional(),
-  templateVariables: z.record(z.string()).optional(),
+  templateVariables: z.record(z.string(), z.string()).optional(),
   subject: z.string().optional(),
   idempotencyKey: z.string().min(1, 'idempotencyKey is required'),
 });

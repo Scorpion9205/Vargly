@@ -73,7 +73,7 @@ export const bulkImportSchema = z
   .object({
     entityType: z.enum(['STUDENTS', 'BATCHES']),
     rows: z
-      .array(z.record(z.unknown()))
+      .array(z.record(z.string(), z.unknown()))
       .min(1)
       .max(MAX_IMPORT_ROWS, `Import at most ${MAX_IMPORT_ROWS} rows at a time`),
     dryRun: z.boolean().default(false),

@@ -5,7 +5,7 @@ export const recordTimelineEntrySchema = z.object({
   eventType: z.string().min(1).max(100),
   summary: z.string().min(1),
   referenceId: z.string().uuid().optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
   occurredAt: z.coerce.date().optional(),
 });
 
